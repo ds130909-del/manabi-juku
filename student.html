@@ -383,6 +383,59 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
   border:1px solid #ffd089;
 }
 
+/* EXP BAR */
+.exp-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.exp-fill{height:100%;background:linear-gradient(90deg,#f6d365,#fda085);border-radius:4px;transition:width 0.7s;}
+
+/* EVOLUTION POPUP */
+#evo-popup{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.8);z-index:500;
+}
+.evo-box{
+  background:white;border-radius:24px;padding:2rem 1.5rem;text-align:center;
+  max-width:300px;width:88%;animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  border:4px solid var(--accent);
+}
+.evo-title{font-size:1.1rem;font-weight:900;color:var(--purple);margin-bottom:0.8rem;}
+.evo-chars{font-size:3rem;display:flex;align-items:center;justify-content:center;gap:0.8rem;margin:0.5rem 0;}
+.evo-arrow{font-size:1.5rem;color:var(--accent);}
+@keyframes evoPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+.evo-new{animation:evoPulse 0.7s infinite;}
+.evo-name{font-size:1.2rem;font-weight:900;color:var(--accent);margin:0.5rem 0;}
+.evo-desc{font-size:0.88rem;color:var(--muted);margin-bottom:1rem;}
+.evo-ok-btn{
+  padding:0.7rem 2rem;background:linear-gradient(135deg,#f6d365,#fda085);
+  color:white;border:none;border-radius:12px;font-size:1rem;
+  font-weight:900;font-family:inherit;cursor:pointer;
+}
+
+/* CHAPTER SCREEN */
+#screen-chapter{
+  align-items:center;justify-content:center;padding:2rem;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+}
+.chapter-card{
+  background:rgba(255,255,255,0.07);border-radius:24px;padding:2rem 1.5rem;
+  width:100%;max-width:420px;text-align:center;
+  border:2px solid rgba(255,255,255,0.15);
+  animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.chapter-num{font-size:0.82rem;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:2px;margin-bottom:0.3rem;}
+.chapter-title{font-size:1.5rem;font-weight:900;color:white;margin-bottom:1rem;}
+.chapter-scene{font-size:5rem;margin:0.3rem 0;animation:bounce 2s infinite;}
+.chapter-text{
+  font-size:0.98rem;line-height:2;color:rgba(255,255,255,0.88);
+  background:rgba(255,255,255,0.07);border-radius:12px;
+  padding:1rem 1.2rem;margin:1rem 0 1.5rem;text-align:left;
+}
+.chapter-continue-btn{
+  width:100%;padding:0.9rem;
+  background:linear-gradient(135deg,#f6d365,#fda085);
+  color:white;border:none;border-radius:12px;font-size:1.1rem;
+  font-weight:900;font-family:inherit;cursor:pointer;
+}
+
 /* DIFF POPUP */
 .diff-popup{
   position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);
@@ -472,10 +525,16 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
 <div class="screen" id="screen-map">
   <div class="sess-header">
     <div class="sess-player">
-      <div class="avatar">🐼</div>
-      <div>
-        <div class="name" id="header-name">—</div>
-        <div class="stars">⭐ <span id="header-stars">0</span></div>
+      <div class="avatar" id="header-avatar" style="font-size:1.8rem">🥚</div>
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:0.35rem">
+          <div class="name" id="header-name">—</div>
+          <div style="font-size:0.68rem;color:var(--accent);font-weight:700;white-space:nowrap" id="exp-avatar-name">タマゴ</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.35rem;margin-top:2px">
+          <div class="exp-bar" style="width:80px"><div class="exp-fill" id="exp-fill" style="width:0%"></div></div>
+          <span style="font-size:0.6rem;color:var(--muted);white-space:nowrap" id="exp-value">0</span>
+        </div>
       </div>
     </div>
     <div class="sess-timer" id="map-timer">30:00</div>
@@ -535,6 +594,17 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
         <button class="num-btn ok-btn" id="ok-btn" onclick="submitAnswer()">✓</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== GRADE 1 CHAPTER ===== -->
+<div class="screen" id="screen-chapter">
+  <div class="chapter-card">
+    <div class="chapter-num" id="ch-num">第1話 / 全12話</div>
+    <div class="chapter-title" id="ch-title">ふしぎなとびら</div>
+    <div class="chapter-scene" id="ch-scene">🚪</div>
+    <div class="chapter-text" id="ch-text"></div>
+    <button class="chapter-continue-btn" onclick="proceedAfterChapter()">▶ つづける</button>
   </div>
 </div>
 
@@ -628,6 +698,21 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
 
 <div class="diff-popup" id="diff-popup"></div>
 
+<!-- EVOLUTION POPUP -->
+<div id="evo-popup">
+  <div class="evo-box">
+    <div class="evo-title">🎊 しんかした！！</div>
+    <div class="evo-chars">
+      <span id="evo-old-emoji">🥚</span>
+      <span class="evo-arrow">→</span>
+      <span class="evo-new" id="evo-new-emoji">🐣</span>
+    </div>
+    <div class="evo-name" id="evo-new-name">ひなパンダ</div>
+    <div class="evo-desc" id="evo-new-desc">EXPがたまった！</div>
+    <button class="evo-ok-btn" onclick="document.getElementById('evo-popup').style.display='none'">やったー！ 🎉</button>
+  </div>
+</div>
+
 <script>
 // ============================
 // CURRICULUM
@@ -655,6 +740,39 @@ const SPEED_CFG = {
   mul:{fast:4000,slow:12000}, mul2:{fast:9000,slow:22000},
   div:{fast:6000,slow:16000}, divr:{fast:9000,slow:22000},
 };
+
+// ============================
+// AVATAR EVOLUTION
+// ============================
+const AVATAR_FORMS = [
+  {minExp:0,    emoji:'🥚',  name:'タマゴ',       msg:'けいさんのたびが はじまった！'},
+  {minExp:80,   emoji:'🐣',  name:'ひなパンダ',   msg:'タマゴから うまれた！ちいさくても つよい！'},
+  {minExp:300,  emoji:'🐼',  name:'マナベビー',   msg:'どんどん せいちょうしている！'},
+  {minExp:700,  emoji:'🐻',  name:'マナベア',     msg:'もう まけない！ つよく なった！'},
+  {minExp:1200, emoji:'🐻‍❄️', name:'こおりパンダ', msg:'れいせいさが みについてきた！'},
+  {minExp:2000, emoji:'🦁',  name:'マナライオン', msg:'もりのおう！ けいさんの おうじゃ！'},
+  {minExp:3200, emoji:'🐯',  name:'マナタイガー', msg:'だれも とめられない！さいきょう！'},
+  {minExp:5000, emoji:'🐉',  name:'マナドラゴン', msg:'つよさの きわみ！でんせつの けいさんりゅう！'},
+];
+
+// ============================
+// GRADE 1 STORY ARC (12 chapters)
+// ============================
+const GRADE1_STORY = [
+  {chapter:1, title:'ふしぎなとびら',     scene:'🚪', text:'マナくんは いつものように おさんぽを していた。\nすると きらきらと ひかる とびらを みつけた。\n「なんだろう？」\nそっと とびらを あけると…しろい もやの なかに すいこまれていった！'},
+  {chapter:2, title:'もりでのであい',     scene:'🌳', text:'もやが はれると、みどりの もりが ひろがっていた。\nキツネのコンくんが かけよってきた。\n「ようこそ けいさんのせかいへ！\nここでは けいさんが できないと すすめないんだ。\nでも だいじょうぶ、ぼくと いっしょに いこう！」'},
+  {chapter:3, title:'キノコのおかのひみつ', scene:'🍄', text:'もりを ぬけると キノコのおかに でた。\nウサギのピョンちゃんが なきながら はしってくる。\n「キノコが あめで ながれちゃった！\nのこりが いくつか わからないの…」\nマナくんは ピョンちゃんを たすけることにした。'},
+  {chapter:4, title:'ほしぞらのそうげん', scene:'⭐', text:'おかをこえると ひろいそうげんに でた。\nよるになると ほしが きれいに かがやいている。\nフクロウのフク先生が むかえてくれた。\n「おや まよいこんだのかね。\nわしに けいさんを みせてくれれば みちを おしえよう。」'},
+  {chapter:5, title:'かわをわたれ！',     scene:'🌊', text:'そうげんをすぎると かわが あった。\nカワウソのウータくんが こまっていた。\n「むこうぎしに わたりたいけど…さかなの かずが かぞえられなくて こわいんだ。」\n「ぼくが てつだうよ！」\nマナくんは こぶしを にぎった。'},
+  {chapter:6, title:'けいさんのまちへ',   scene:'🏙', text:'かわをわたると おおきなまちが みえてきた。\nまちのいたるところに かずが あふれている。\nネコのタマちゃんが まっていた。\n「このまちでは けいさんができないと おかいものも できないの。\nわたしのおつかい、てつだって！」'},
+  {chapter:7, title:'なかまがあつまった', scene:'🤝', text:'まちをあるいていると、いままで たすけてきた なかまたちが あつまってきた。\nコン、ピョン、フク先生、ウータ、タマ…\n「みんな また あえた！」マナくんは よろこんだ。\n「みんなで いっしょに もどろう！」コンくんが いった。\nでも…まだ みちは つづいている。'},
+  {chapter:8, title:'いちばのあらし',     scene:'🍎', text:'まちのいちばに おおきな あらしが やってきた！\nリスのクリちゃんの おみせが たいへんなことに！\n「くだものが ぜんぶ まざっちゃった！たすけて！」\nマナくんと なかまたちは ちからを あわせた。\n「みんなで やれば こわくない！」'},
+  {chapter:9, title:'やまのちょうせん',   scene:'⛰', text:'まちをぬけると たかい やまが みえてきた。\nクマのゴンが うえから みおろしている。\n「ここをとおるには わしの もんだいに こたえなければならん。\nおおきな かずの けいさんじゃ。じしんが あるなら あがってこい！」\nマナくんは おそれずに やまを のぼりはじめた。'},
+  {chapter:10, title:'なかまのきき',      scene:'💫', text:'やまのなかほどで コンくんが たおれていた。\n「つかれちゃった…もうすすめないよ…」\nマナくんは コンくんの てを にぎった。\n「だいじょうぶ、ぼくが まもる！いっしょに ゴールまで いこう！」\nなかまたちのめに なみだが あふれた。\nみんなで ゆっくり のぼっていった。'},
+  {chapter:11, title:'とびらのまえで',    scene:'🌟', text:'やまのてっぺんに たどりついた！\nかがやく とびらが みえる。\n「これが もとのせかいへの とびらだ！」\nでも とびらのまえに もんばんが たっている。\n「さいごの もんだいを とかないと ひらかないよ。\nマナくん、がんばれ！」みんなが こえをかけた。'},
+  {chapter:12, title:'かえってきた！ 〜おわり〜', scene:'🎉', text:'さいごのもんだいを とき、とびらがひらいた！\nマナくんは もとのせかいに もどってきた。\nするとポケットに なにかが はいっていた。\nきんのほしと、なかまたち みんなからの てがみ。\n「また あそぼう！ けいさん つづけてね！ ✨」\nマナくんは おおきく わらった。\nこれは おわりではなく、あたらしい はじまりだった。'},
+];
+
 // ============================
 // STORY DATA
 // ============================
@@ -826,7 +944,7 @@ const SESSION_MINUTES = 30;
 // ============================
 // STATE
 // ============================
-let state = {playerName:'',stars:0,cleared:[],stageProgress:{},sessionCount:0};
+let state = {playerName:'',stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0};
 let session = {};   // current stage session
 let sessMgr = {};   // 30-min session manager
 let timerInterval = null;
@@ -838,11 +956,84 @@ let sessTimerInterval = null;
 function saveState(){localStorage.setItem('juku_student_'+state.playerName,JSON.stringify(state));}
 function loadState(name){
   const raw=localStorage.getItem('juku_student_'+name);
-  if(raw){state=JSON.parse(raw);state.playerName=name;}
-  else{state={playerName:name,stars:0,cleared:[],stageProgress:{},sessionCount:0};}
+  if(raw){state=JSON.parse(raw);state.playerName=name;
+    if(!state.exp) state.exp=0;
+    if(!state.g1chapter) state.g1chapter=0;
+  }
+  else{state={playerName:name,stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0};}
 }
 function isCleared(id){return state.cleared.includes(id);}
 function isAvailable(id){return id===1||isCleared(id-1);}
+
+// ============================
+// EXP & AVATAR
+// ============================
+function getAvatarIdx(exp){
+  let idx=0;
+  for(let i=0;i<AVATAR_FORMS.length;i++){if(exp>=AVATAR_FORMS[i].minExp)idx=i;}
+  return idx;
+}
+
+function earnExp(amount){
+  const oldExp=state.exp||0;
+  const oldIdx=getAvatarIdx(oldExp);
+  state.exp=oldExp+amount;
+  const newIdx=getAvatarIdx(state.exp);
+  saveState();
+  updateExpBar();
+  if(newIdx>oldIdx) setTimeout(()=>showEvoPopup(oldIdx,newIdx),600);
+}
+
+function updateExpBar(){
+  const exp=state.exp||0;
+  const idx=getAvatarIdx(exp);
+  const form=AVATAR_FORMS[idx];
+  const next=AVATAR_FORMS[idx+1];
+  const avatarEl=document.getElementById('header-avatar');
+  if(avatarEl) avatarEl.textContent=form.emoji;
+  const nameEl=document.getElementById('exp-avatar-name');
+  if(nameEl) nameEl.textContent=form.name;
+  const valEl=document.getElementById('exp-value');
+  if(valEl) valEl.textContent=exp+' EXP';
+  const fillEl=document.getElementById('exp-fill');
+  if(fillEl){
+    const pct=next?Math.min(100,((exp-form.minExp)/(next.minExp-form.minExp))*100):100;
+    fillEl.style.width=pct+'%';
+  }
+  const mascot=document.querySelector('.mascot');
+  if(mascot) mascot.textContent=form.emoji;
+}
+
+function showEvoPopup(oldIdx,newIdx){
+  const oldForm=AVATAR_FORMS[oldIdx];
+  const newForm=AVATAR_FORMS[newIdx];
+  const popup=document.getElementById('evo-popup');
+  if(!popup) return;
+  document.getElementById('evo-old-emoji').textContent=oldForm.emoji;
+  document.getElementById('evo-new-emoji').textContent=newForm.emoji;
+  document.getElementById('evo-new-name').textContent=newForm.name;
+  document.getElementById('evo-new-desc').textContent=newForm.msg;
+  popup.style.display='flex';
+}
+
+// ============================
+// GRADE 1 CHAPTER
+// ============================
+function showGrade1Chapter(ch){
+  const data=GRADE1_STORY[ch-1];
+  if(!data){proceedAfterChapter();return;}
+  document.getElementById('ch-num').textContent=`第${ch}話 ／ 全12話`;
+  document.getElementById('ch-title').textContent=data.title;
+  document.getElementById('ch-scene').textContent=data.scene;
+  document.getElementById('ch-text').innerHTML=data.text.replace(/\n/g,'<br>');
+  showScreen('chapter');
+}
+
+function proceedAfterChapter(){
+  const cleared=STAGES.filter(s=>isCleared(s.id));
+  if(cleared.length>0) startReviewTest();
+  else{startSessionTimer();renderMap();showScreen('map');}
+}
 
 // ============================
 // SCREEN NAV
@@ -899,8 +1090,9 @@ function startGame(){
   if(!name){document.getElementById('name-input').focus();return;}
   loadState(name);
   state.sessionCount = (state.sessionCount||0)+1;
+  saveState();
   document.getElementById('header-name').textContent = name+'さん';
-  document.getElementById('header-stars').textContent = state.stars;
+  updateExpBar();
   // Init session manager
   sessMgr = {
     startTime: null, totalMs: SESSION_MINUTES*60*1000,
@@ -910,13 +1102,16 @@ function startGame(){
     totalCorrect: 0, totalAttempts: 0,
     bestStreak: 0, lastDiffTier: 1, lastStageWorked: null,
   };
-  const cleared = STAGES.filter(s=>isCleared(s.id));
-  if(cleared.length > 0){
-    startReviewTest();
+  // Show Grade 1 chapter if not yet finished
+  const g1ch = state.g1chapter||0;
+  if(g1ch < 12){
+    state.g1chapter = g1ch + 1;
+    saveState();
+    showGrade1Chapter(state.g1chapter);
   } else {
-    startSessionTimer();
-    renderMap();
-    showScreen('map');
+    const cleared = STAGES.filter(s=>isCleared(s.id));
+    if(cleared.length > 0) startReviewTest();
+    else{startSessionTimer();renderMap();showScreen('map');}
   }
 }
 document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
@@ -1386,6 +1581,12 @@ function submitAnswer(){
     fb.className='feedback-msg ok';
     // accumulate into sessMgr
     sessMgr.totalCorrect++;
+    // EXP
+    let expGain=10;
+    if(session.streak===5) expGain+=15;
+    if(session.streak===10) expGain+=25;
+    if(session.streak===15) expGain+=40;
+    earnExp(expGain);
   } else {
     session.lives--;session.streak=0;
     box.className='question-box wrong';
@@ -1419,6 +1620,7 @@ function showClear(){
   state.stars+=earnedStars;
   state.stageProgress[id]={correct:session.correct,attempts:session.attempts,bestStreak:session.bestStreak,stars:earnedStars,acc};
   saveState();
+  earnExp(wasNew?100:30);
   document.getElementById('cs-correct').textContent=session.correct;
   document.getElementById('cs-acc').textContent=acc+'%';
   document.getElementById('cs-streak').textContent=session.bestStreak;
@@ -1529,9 +1731,15 @@ function startNextSession(){
     stagesAtStart:[...state.cleared],stagesNewlyCleared:[],
     totalCorrect:0,totalAttempts:0,bestStreak:0,lastDiffTier:1,lastStageWorked:null,
   };
-  const cleared=STAGES.filter(s=>isCleared(s.id));
-  if(cleared.length>0) startReviewTest();
-  else{startSessionTimer();renderMap();showScreen('map');}
+  const g1ch=state.g1chapter||0;
+  if(g1ch<12){
+    state.g1chapter=g1ch+1;saveState();
+    showGrade1Chapter(state.g1chapter);
+  } else {
+    const cleared=STAGES.filter(s=>isCleared(s.id));
+    if(cleared.length>0) startReviewTest();
+    else{startSessionTimer();renderMap();showScreen('map');}
+  }
 }
 
 // ============================
@@ -1640,7 +1848,17 @@ function spawnConfetti(){
 // ============================
 (function(){
   const keys=Object.keys(localStorage).filter(k=>k.startsWith('juku_student_'));
-  if(keys.length===1) document.getElementById('name-input').value=keys[0].replace('juku_student_','');
+  if(keys.length===1){
+    const name=keys[0].replace('juku_student_','');
+    document.getElementById('name-input').value=name;
+    const raw=localStorage.getItem(keys[0]);
+    if(raw){
+      const s=JSON.parse(raw);
+      const exp=s.exp||0;
+      const idx=getAvatarIdx(exp);
+      document.querySelector('.mascot').textContent=AVATAR_FORMS[idx].emoji;
+    }
+  }
 })();
 </script>
 </body>
