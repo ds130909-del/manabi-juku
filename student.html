@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>まなび塾 | 算数学習</title>
+<style>
+:root {
+  --primary:#4A90D9; --accent:#F5A623; --green:#27ae60; --red:#e74c3c;
+  --purple:#8e44ad; --bg:#FFF9F0; --text:#2d3748; --muted:#718096;
+  --border:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ===== SCREENS ===== */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ===== SESSION HEADER (shared) ===== */
+.sess-header{
+  background:white;padding:0.7rem 1rem;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:2px solid var(--border);
+  position:sticky;top:0;z-index:20;
+}
+.sess-player{display:flex;align-items:center;gap:0.5rem;}
+.sess-player .avatar{font-size:1.6rem;}
+.sess-player .name{font-weight:900;font-size:0.95rem;}
+.sess-player .stars{color:var(--accent);font-size:0.8rem;}
+.sess-timer{
+  font-size:1.3rem;font-weight:900;padding:0.3rem 0.8rem;
+  border-radius:10px;background:#f0f4ff;color:var(--primary);
+  border:2px solid var(--primary);letter-spacing:1px;transition:all 0.3s;
+}
+.sess-timer.warn{background:#fff3cd;color:#e65100;border-color:#e65100;}
+.sess-timer.danger{background:#ffe0e0;color:var(--red);border-color:var(--red);animation:timerPulse 1s infinite;}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.end-sess-btn{
+  background:none;border:1px solid var(--border);border-radius:8px;
+  padding:0.3rem 0.7rem;font-size:0.78rem;color:var(--muted);cursor:pointer;
+}
+
+/* ===== LOGIN ===== */
+#screen-login{
+  align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:2rem;
+}
+.login-box{
+  background:white;border-radius:24px;padding:2.5rem 2rem;
+  width:100%;max-width:380px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes popIn{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.mascot{font-size:5rem;margin-bottom:0.5rem;animation:bounce 2s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.login-box h1{font-size:1.8rem;font-weight:900;color:var(--purple);margin-bottom:0.3rem;}
+.login-box p{color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;}
+.name-input{
+  width:100%;padding:1rem;font-size:1.2rem;text-align:center;
+  border:3px solid var(--border);border-radius:12px;outline:none;
+  font-family:inherit;transition:border-color 0.2s;margin-bottom:1rem;
+}
+.name-input:focus{border-color:var(--purple);}
+.start-btn{
+  width:100%;padding:1rem;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;border:none;border-radius:12px;font-size:1.2rem;
+  font-weight:900;font-family:inherit;cursor:pointer;transition:transform 0.2s;
+}
+.start-btn:hover{transform:translateY(-2px);}
+
+/* ===== REVIEW TEST ===== */
+#screen-review{background:#f0f7ff;}
+.review-header{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;padding:1rem 1.2rem;text-align:center;
+}
+.review-header h2{font-size:1.2rem;font-weight:900;margin-bottom:0.2rem;}
+.review-header p{font-size:0.85rem;opacity:0.9;}
+.review-progress{
+  background:white;padding:0.7rem 1rem;
+  display:flex;align-items:center;gap:0.8rem;border-bottom:1px solid var(--border);
+}
+.rev-prog-bar{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
+.rev-prog-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:5px;transition:width 0.4s;}
+.rev-q-num{font-weight:700;font-size:0.9rem;color:var(--purple);white-space:nowrap;}
+
+/* Shared problem area styles */
+.problem-area{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:1.2rem 1rem 0.5rem;
+}
+.diff-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;font-size:0.82rem;}
+.diff-badge{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  padding:0.25rem 0.7rem;border-radius:20px;font-weight:700;font-size:0.82rem;transition:all 0.4s;
+}
+.diff-badge.easy{background:#e8f5e9;color:#2e7d32;}
+.diff-badge.normal{background:#fff3e0;color:#e65100;}
+.diff-badge.hard{background:#fce4ec;color:#b71c1c;}
+.speed-badge{font-size:0.78rem;color:var(--muted);padding:0.25rem 0.6rem;background:#f0f0f0;border-radius:20px;}
+.timer-bar-wrap{width:100%;max-width:360px;height:6px;background:var(--border);border-radius:3px;margin-bottom:0.6rem;overflow:hidden;}
+.timer-bar{height:100%;border-radius:3px;width:100%;transition:width 0.1s linear,background 0.5s;background:var(--green);}
+.question-box{
+  background:white;border-radius:20px;padding:1.5rem;
+  text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  width:100%;max-width:360px;margin-bottom:1rem;
+  border:3px solid transparent;transition:border-color 0.3s;
+}
+.question-box.correct{border-color:var(--green);animation:correctShake 0.4s;}
+.question-box.wrong{border-color:var(--red);animation:wrongShake 0.4s;}
+@keyframes correctShake{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.question-hint{font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem;}
+.question-text{
+  font-size:3rem;font-weight:900;letter-spacing:4px;color:var(--text);
+  display:flex;align-items:center;justify-content:center;gap:0.3rem;flex-wrap:wrap;
+}
+.q-op{color:var(--primary);}
+.answer-display{
+  font-size:3rem;font-weight:900;color:var(--purple);min-width:80px;
+  border-bottom:4px solid var(--purple);padding:0 0.3rem;min-height:1.2em;
+  display:inline-block;text-align:center;
+}
+.answer-display.empty{border-color:#ccc;}
+.feedback-msg{font-size:1.1rem;font-weight:700;min-height:1.5rem;margin-top:0.5rem;}
+.feedback-msg.ok{color:var(--green);}
+.feedback-msg.ng{color:var(--red);}
+.numpad-area{width:100%;max-width:360px;padding-bottom:1rem;}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;}
+.num-btn{
+  aspect-ratio:1.2;border-radius:14px;border:none;cursor:pointer;
+  font-size:1.8rem;font-weight:900;font-family:inherit;
+  background:white;box-shadow:0 3px 8px rgba(0,0,0,0.12);
+  transition:transform 0.1s,box-shadow 0.1s;color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+}
+.num-btn:active{transform:scale(0.94);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.num-btn.del-btn{background:#fff0f0;color:var(--red);font-size:1.4rem;}
+.num-btn.ok-btn{background:linear-gradient(135deg,var(--green),#219a52);color:white;font-size:1.5rem;}
+.num-btn.ok-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+/* Review result */
+.review-result{
+  background:white;border-radius:20px;padding:1.5rem;
+  text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  width:100%;max-width:360px;animation:popIn 0.4s ease;
+}
+.rev-score{font-size:3.5rem;font-weight:900;color:var(--purple);}
+.rev-score-label{font-size:0.9rem;color:var(--muted);margin-bottom:1rem;}
+.rev-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin:1rem 0;}
+.rev-detail-item{background:var(--bg);border-radius:10px;padding:0.6rem;}
+.rev-detail-num{font-size:1.4rem;font-weight:900;color:var(--primary);}
+.rev-detail-lbl{font-size:0.75rem;color:var(--muted);}
+.proceed-btn{
+  width:100%;padding:0.9rem;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;border:none;border-radius:12px;font-size:1.1rem;
+  font-weight:900;font-family:inherit;cursor:pointer;margin-top:0.5rem;
+}
+
+/* ===== MAP ===== */
+#screen-map{background:linear-gradient(180deg,#87CEEB 0%,#98FB98 60%,#90EE90 100%);}
+
+/* Overall progress bar */
+.overall-progress{
+  background:rgba(255,255,255,0.92);margin:0.8rem;border-radius:16px;
+  padding:1rem 1.2rem;box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.op-title{font-size:0.85rem;font-weight:700;color:var(--muted);margin-bottom:0.5rem;display:flex;justify-content:space-between;align-items:center;}
+.op-pct{font-size:1.1rem;font-weight:900;color:var(--purple);}
+.op-bar{height:16px;background:var(--border);border-radius:8px;overflow:hidden;position:relative;margin-bottom:0.5rem;}
+.op-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:8px;transition:width 0.8s;}
+.op-markers{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);}
+.op-grade-badges{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+.op-grade-badge{
+  padding:0.2rem 0.6rem;border-radius:12px;font-size:0.75rem;font-weight:700;
+  border:2px solid transparent;
+}
+.op-grade-badge.complete{background:#e8f5e9;color:#2e7d32;border-color:#2e7d32;}
+.op-grade-badge.partial{background:#fff3e0;color:#e65100;border-color:#e65100;}
+.op-grade-badge.locked{background:#f5f5f5;color:#aaa;border-color:#ddd;}
+
+.map-title{text-align:center;padding:0.5rem 0 0.3rem;font-size:1.2rem;font-weight:900;color:#2c3e50;}
+.grade-section{padding:0.5rem 1rem 1rem;}
+.grade-banner{
+  display:flex;align-items:center;gap:0.6rem;
+  background:rgba(255,255,255,0.8);border-radius:12px;padding:0.6rem 1rem;
+  margin-bottom:0.8rem;font-weight:900;font-size:1rem;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;}
+.stage-btn{
+  aspect-ratio:1;border-radius:16px;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0.3rem;font-family:inherit;font-weight:700;transition:transform 0.2s;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);position:relative;overflow:hidden;padding:0.5rem;
+}
+.stage-btn:active{transform:scale(0.96);}
+.stage-btn.locked{background:#ccc;cursor:not-allowed;color:#999;}
+.stage-btn.locked:active{transform:none;}
+.stage-btn.available{background:linear-gradient(135deg,#f6d365,#fda085);color:white;}
+.stage-btn.available:hover{transform:translateY(-3px);}
+.stage-btn.cleared{background:linear-gradient(135deg,#84fab0,#8fd3f4);color:#1a5276;}
+.stage-btn.cleared:hover{transform:translateY(-3px);}
+.stage-num{font-size:1.4rem;font-weight:900;}
+.stage-name{font-size:0.7rem;text-align:center;line-height:1.2;}
+.stage-stars{font-size:0.8rem;}
+.cleared-badge{
+  position:absolute;top:4px;right:4px;background:var(--green);color:white;
+  border-radius:50%;width:20px;height:20px;font-size:0.6rem;
+  display:flex;align-items:center;justify-content:center;font-weight:900;
+}
+
+/* ===== PROBLEM SCREEN ===== */
+#screen-problem{background:var(--bg);}
+.prob-header{
+  background:white;padding:0.8rem 1rem;display:flex;align-items:center;
+  gap:0.8rem;border-bottom:2px solid #f0f0f0;
+}
+.back-btn{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.4rem 0.7rem;cursor:pointer;font-size:0.85rem;color:var(--muted);
+}
+.stage-title-bar{flex:1;}
+.stage-title-bar h2{font-size:1rem;font-weight:900;}
+.stage-title-bar p{font-size:0.78rem;color:var(--muted);}
+.prob-hearts{font-size:1.2rem;letter-spacing:2px;}
+.progress-section{padding:0.8rem 1rem;background:white;border-bottom:1px solid #f0f0f0;}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;font-size:0.85rem;}
+.prog-bar{height:12px;background:var(--border);border-radius:6px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#27ae60);border-radius:6px;transition:width 0.5s;}
+
+/* ===== STAGE CLEAR ===== */
+#screen-clear{
+  align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#f6d365 0%,#fda085 100%);
+  padding:2rem;text-align:center;
+}
+.clear-box{
+  background:white;border-radius:24px;padding:2.5rem 2rem;
+  width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.clear-icon{font-size:5rem;margin-bottom:0.5rem;animation:spin 1s ease;}
+@keyframes spin{from{transform:rotate(-20deg) scale(0.5);}to{transform:rotate(0deg) scale(1);}}
+.clear-box h2{font-size:2rem;font-weight:900;color:var(--accent);margin-bottom:0.3rem;}
+.clear-box p{color:var(--muted);margin-bottom:1.5rem;}
+.clear-stars{font-size:2.5rem;letter-spacing:0.2rem;margin-bottom:1rem;}
+.clear-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.5rem;}
+.cs-item{background:var(--bg);border-radius:10px;padding:0.7rem;}
+.cs-num{font-size:1.6rem;font-weight:900;color:var(--primary);}
+.cs-label{font-size:0.78rem;color:var(--muted);}
+.next-btn{
+  width:100%;padding:1rem;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;border:none;border-radius:12px;font-size:1.1rem;
+  font-weight:900;font-family:inherit;cursor:pointer;margin-bottom:0.7rem;
+}
+.map-btn{
+  width:100%;padding:0.8rem;background:white;border:2px solid var(--border);
+  border-radius:12px;font-size:1rem;font-weight:700;font-family:inherit;
+  cursor:pointer;color:var(--muted);
+}
+
+/* ===== SESSION SUMMARY ===== */
+#screen-summary{background:var(--bg);overflow-y:auto;}
+.summary-hero{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;padding:1.5rem;text-align:center;
+}
+.summary-hero h2{font-size:1.5rem;font-weight:900;margin-bottom:0.3rem;}
+.summary-hero p{opacity:0.9;font-size:0.9rem;}
+.summary-body{padding:1rem;max-width:500px;margin:0 auto;}
+.summary-card{
+  background:white;border-radius:16px;padding:1.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:1rem;
+}
+.summary-card h3{font-size:0.9rem;font-weight:700;color:var(--muted);margin-bottom:0.8rem;text-transform:uppercase;letter-spacing:1px;}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;}
+.stat-cell{background:var(--bg);border-radius:10px;padding:0.6rem;text-align:center;}
+.stat-cell .num{font-size:1.5rem;font-weight:900;color:var(--primary);}
+.stat-cell .lbl{font-size:0.72rem;color:var(--muted);}
+.overall-prog-summary{margin-top:0.5rem;}
+.ops-bar{height:14px;background:var(--border);border-radius:7px;overflow:hidden;margin-bottom:0.4rem;}
+.ops-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:7px;transition:width 1s;}
+.ops-detail{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);}
+.auto-comment{
+  background:#f0f7ff;border-left:4px solid var(--primary);
+  padding:0.8rem 1rem;border-radius:0 8px 8px 0;font-size:0.9rem;line-height:1.6;
+}
+.summary-actions{display:flex;flex-direction:column;gap:0.7rem;margin-bottom:2rem;}
+.action-btn{
+  width:100%;padding:0.9rem;border:none;border-radius:12px;
+  font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;
+}
+.btn-print{background:#2c3e50;color:white;}
+.btn-next-sess{background:linear-gradient(135deg,#27ae60,#219a52);color:white;}
+.btn-map{background:white;border:2px solid var(--border);color:var(--muted);}
+
+/* ===== PRINTABLE REPORT ===== */
+.print-only{display:none;}
+
+@media print {
+  body *{visibility:hidden;}
+  .print-only,
+  .print-only *{visibility:visible;}
+  .print-only{
+    display:block!important;
+    position:fixed;inset:0;background:white;
+    padding:1.5cm;font-size:10pt;color:black;
+    font-family:'Hiragino Mincho Pro','MS Mincho',serif;
+  }
+  .no-print{display:none!important;}
+}
+
+.report-page{max-width:700px;margin:0 auto;}
+.report-header{
+  border-bottom:3px solid #2c3e50;padding-bottom:0.8rem;margin-bottom:1.2rem;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.report-header h1{font-size:1.5rem;font-weight:900;color:#2c3e50;}
+.report-header .report-meta{font-size:0.85rem;text-align:right;color:#555;}
+.report-section{margin-bottom:1rem;}
+.report-section h3{
+  font-size:0.85rem;font-weight:700;color:#555;background:#f5f5f5;
+  padding:0.3rem 0.6rem;border-radius:4px;margin-bottom:0.5rem;
+}
+.report-table{width:100%;border-collapse:collapse;font-size:0.88rem;}
+.report-table td{padding:0.4rem 0.6rem;border:1px solid #ddd;}
+.report-table td:first-child{font-weight:700;color:#555;width:140px;background:#fafafa;}
+.report-bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin-top:3px;}
+.report-bar-fill{height:100%;border-radius:5px;background:#667eea;}
+.report-stage-list{display:flex;flex-wrap:wrap;gap:0.4rem;}
+.report-stage-chip{
+  padding:0.2rem 0.5rem;border-radius:4px;font-size:0.78rem;
+  border:1px solid #ccc;background:#f5f5f5;
+}
+.report-stage-chip.new{background:#e8f5e9;color:#2e7d32;border-color:#2e7d32;font-weight:700;}
+.teacher-box{
+  border:1px solid #ccc;border-radius:4px;padding:0.5rem;
+  min-height:80px;background:white;
+}
+.teacher-box .lines{
+  background:repeating-linear-gradient(transparent,transparent 24px,#ddd 24px,#ddd 25px);
+  min-height:75px;
+}
+.report-footer{margin-top:1rem;font-size:0.78rem;color:#999;text-align:center;border-top:1px solid #eee;padding-top:0.5rem;}
+
+/* DIFF POPUP */
+.diff-popup{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);
+  background:rgba(0,0,0,0.85);color:white;padding:1rem 2rem;border-radius:16px;
+  font-size:1.3rem;font-weight:900;z-index:300;opacity:0;
+  transition:all 0.3s;pointer-events:none;text-align:center;
+}
+.diff-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+/* CONFETTI */
+.confetti-piece{
+  position:fixed;width:10px;height:10px;border-radius:2px;
+  animation:confettiFall 2.5s linear forwards;z-index:200;pointer-events:none;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0;}
+}
+
+@media(min-width:500px){
+  .stage-grid{grid-template-columns:repeat(5,1fr);}
+  .num-btn{aspect-ratio:1.5;}
+}
+@media(max-width:360px){
+  .question-text{font-size:2.4rem;}
+  .answer-display{font-size:2.4rem;}
+  .num-btn{font-size:1.5rem;border-radius:10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <div class="mascot">🐼</div>
+    <h1>まなび塾</h1>
+    <p>算数をいっしょにがんばろう！</p>
+    <input class="name-input" id="name-input" type="text" placeholder="なまえをいれてね" maxlength="10" autocomplete="off">
+    <button class="start-btn" onclick="startGame()">🚀 はじめる！</button>
+  </div>
+</div>
+
+<!-- ===== REVIEW TEST ===== -->
+<div class="screen" id="screen-review">
+  <div class="review-header">
+    <h2>📝 きょうのふくしゅうテスト</h2>
+    <p>まえにならったところから10もん！</p>
+  </div>
+  <div class="review-progress">
+    <div class="rev-prog-bar"><div class="rev-prog-fill" id="rev-prog-fill" style="width:0%"></div></div>
+    <div class="rev-q-num" id="rev-q-num">1 / 10</div>
+  </div>
+  <div class="problem-area" id="review-problem-area">
+    <div class="question-box" id="rev-question-box">
+      <div class="question-hint" id="rev-q-hint"></div>
+      <div class="question-text" id="rev-q-text"></div>
+      <div style="margin-top:0.8rem">
+        <div class="answer-display empty" id="rev-ans-display">　</div>
+      </div>
+      <div class="feedback-msg" id="rev-feedback-msg"></div>
+    </div>
+    <div class="numpad-area">
+      <div class="numpad">
+        <button class="num-btn" onclick="revNumPress('1')">1</button>
+        <button class="num-btn" onclick="revNumPress('2')">2</button>
+        <button class="num-btn" onclick="revNumPress('3')">3</button>
+        <button class="num-btn" onclick="revNumPress('4')">4</button>
+        <button class="num-btn" onclick="revNumPress('5')">5</button>
+        <button class="num-btn" onclick="revNumPress('6')">6</button>
+        <button class="num-btn" onclick="revNumPress('7')">7</button>
+        <button class="num-btn" onclick="revNumPress('8')">8</button>
+        <button class="num-btn" onclick="revNumPress('9')">9</button>
+        <button class="num-btn del-btn" onclick="revNumDel()">⌫</button>
+        <button class="num-btn" onclick="revNumPress('0')">0</button>
+        <button class="num-btn ok-btn" id="rev-ok-btn" onclick="revSubmit()">✓</button>
+      </div>
+    </div>
+  </div>
+  <!-- Review result (shown after 10 problems) -->
+  <div class="problem-area" id="review-result-area" style="display:none;">
+    <div class="review-result" id="review-result-box"></div>
+  </div>
+</div>
+
+<!-- ===== MAP ===== -->
+<div class="screen" id="screen-map">
+  <div class="sess-header">
+    <div class="sess-player">
+      <div class="avatar">🐼</div>
+      <div>
+        <div class="name" id="header-name">—</div>
+        <div class="stars">⭐ <span id="header-stars">0</span></div>
+      </div>
+    </div>
+    <div class="sess-timer" id="map-timer">30:00</div>
+    <button class="end-sess-btn" onclick="endSession()">終了</button>
+  </div>
+  <!-- Overall progress -->
+  <div class="overall-progress" id="overall-progress"></div>
+  <div class="map-title">🗺 ステージをえらぼう</div>
+  <div id="grade-sections"></div>
+</div>
+
+<!-- ===== PROBLEM ===== -->
+<div class="screen" id="screen-problem">
+  <div class="prob-header">
+    <button class="back-btn" onclick="goToMap()">← もどる</button>
+    <div class="stage-title-bar">
+      <h2 id="prob-stage-title">Stage 1</h2>
+      <p id="prob-stage-desc">たし算①</p>
+    </div>
+    <div class="prob-hearts" id="prob-hearts">❤️❤️❤️</div>
+  </div>
+  <div class="progress-section">
+    <div class="prog-row">
+      <span id="prob-count">0 / 20もん</span>
+      <span id="prob-streak">🔥 0れんぞく</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="problem-area">
+    <div class="diff-row">
+      <div class="diff-badge normal" id="diff-badge">⭐ ふつう</div>
+      <div class="speed-badge" id="speed-badge">⏱ —</div>
+    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+    <div class="question-box" id="question-box">
+      <div class="question-hint" id="q-hint"></div>
+      <div class="question-text" id="q-text"></div>
+      <div style="margin-top:0.8rem">
+        <div class="answer-display empty" id="ans-display">　</div>
+      </div>
+      <div class="feedback-msg" id="feedback-msg"></div>
+    </div>
+    <div class="numpad-area">
+      <div class="numpad">
+        <button class="num-btn" onclick="numPress('1')">1</button>
+        <button class="num-btn" onclick="numPress('2')">2</button>
+        <button class="num-btn" onclick="numPress('3')">3</button>
+        <button class="num-btn" onclick="numPress('4')">4</button>
+        <button class="num-btn" onclick="numPress('5')">5</button>
+        <button class="num-btn" onclick="numPress('6')">6</button>
+        <button class="num-btn" onclick="numPress('7')">7</button>
+        <button class="num-btn" onclick="numPress('8')">8</button>
+        <button class="num-btn" onclick="numPress('9')">9</button>
+        <button class="num-btn del-btn" onclick="numDel()">⌫</button>
+        <button class="num-btn" onclick="numPress('0')">0</button>
+        <button class="num-btn ok-btn" id="ok-btn" onclick="submitAnswer()">✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STAGE CLEAR ===== -->
+<div class="screen" id="screen-clear">
+  <div class="clear-box">
+    <div class="clear-icon">🏆</div>
+    <h2>クリア！</h2>
+    <p id="clear-msg">ステージをクリアしました！</p>
+    <div class="clear-stars" id="clear-stars">⭐⭐⭐</div>
+    <div class="clear-stats">
+      <div class="cs-item"><div class="cs-num" id="cs-correct">0</div><div class="cs-label">せいかい</div></div>
+      <div class="cs-item"><div class="cs-num" id="cs-acc">0%</div><div class="cs-label">せいかいりつ</div></div>
+      <div class="cs-item"><div class="cs-num" id="cs-streak">0</div><div class="cs-label">さいこうれんぞく</div></div>
+      <div class="cs-item"><div class="cs-num" id="cs-stars">+0</div><div class="cs-label">ほしのかず</div></div>
+    </div>
+    <button class="next-btn" id="next-stage-btn" onclick="goToNextStage()">つぎのステージへ →</button>
+    <button class="map-btn" onclick="goToMap()">🗺 ちずにもどる</button>
+  </div>
+</div>
+
+<!-- ===== SESSION SUMMARY ===== -->
+<div class="screen" id="screen-summary">
+  <div class="summary-hero">
+    <h2>📊 きょうのまとめ</h2>
+    <p id="summary-date">2026年5月16日</p>
+  </div>
+  <div class="summary-body">
+
+    <div class="summary-card">
+      <h3>📝 ふくしゅうテスト</h3>
+      <div class="stats-grid">
+        <div class="stat-cell"><div class="num" id="sum-rev-score">—</div><div class="lbl">てんすう</div></div>
+        <div class="stat-cell"><div class="num" id="sum-rev-pct">—</div><div class="lbl">せいかいりつ</div></div>
+        <div class="stat-cell"><div class="num" id="sum-rev-time">—</div><div class="lbl">へいきん</div></div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3>✏️ きょうのがくしゅう</h3>
+      <div class="stats-grid">
+        <div class="stat-cell"><div class="num" id="sum-correct">0</div><div class="lbl">せいかい</div></div>
+        <div class="stat-cell"><div class="num" id="sum-acc">0%</div><div class="lbl">せいかいりつ</div></div>
+        <div class="stat-cell"><div class="num" id="sum-streak">0</div><div class="lbl">さいこうれんぞく</div></div>
+      </div>
+      <div style="margin-top:0.8rem;font-size:0.85rem;color:var(--muted)">
+        ステージ: <strong id="sum-stage">—</strong> ／ むずかしさ: <strong id="sum-diff">—</strong>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3>🗺 ぜんたいのしんちょく</h3>
+      <div class="overall-prog-summary">
+        <div class="ops-bar"><div class="ops-fill" id="sum-ops-fill" style="width:0%"></div></div>
+        <div class="ops-detail">
+          <span id="sum-ops-text">0 / 15 ステージ</span>
+          <span id="sum-ops-pct" style="font-weight:700;color:var(--purple)">0%</span>
+        </div>
+        <div style="margin-top:0.6rem;font-size:0.82rem;color:var(--muted)" id="sum-grade-detail"></div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h3>💬 きょうのコメント</h3>
+      <div class="auto-comment" id="sum-comment">—</div>
+    </div>
+
+    <div class="summary-actions">
+      <button class="action-btn btn-print" onclick="printReport()">🖨 ほごしゃむけ ほうこくしょを印刷</button>
+      <button class="action-btn btn-next-sess" onclick="startNextSession()">🚀 もういちどやる</button>
+      <a href="index.html" style="text-decoration:none"><button class="action-btn btn-map">📅 よやくする</button></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRINTABLE REPORT ===== -->
+<div class="print-only" id="print-report">
+  <div class="report-page" id="report-content"></div>
+</div>
+
+<div class="diff-popup" id="diff-popup"></div>
+
+<script>
+// ============================
+// CURRICULUM
+// ============================
+const STAGES = [
+  {id:1, grade:'小1',gradeEmoji:'🟢',name:'たし算①', desc:'1〜10のたし算',   type:'add', a:[1,5],   b:[1,5],   maxR:10},
+  {id:2, grade:'小1',gradeEmoji:'🟢',name:'ひき算①', desc:'1〜10のひき算',   type:'sub', a:[1,9],   b:[1,9],   minR:0},
+  {id:3, grade:'小1',gradeEmoji:'🟢',name:'たし算②', desc:'〜20のたし算',    type:'add', a:[3,12],  b:[3,12],  maxR:20},
+  {id:4, grade:'小1',gradeEmoji:'🟢',name:'ひき算②', desc:'〜20のひき算',    type:'sub', a:[10,20], b:[1,15],  minR:0},
+  {id:5, grade:'小1',gradeEmoji:'🟢',name:'たし算③', desc:'〜100のたし算',   type:'add', a:[10,50], b:[10,50], maxR:100},
+  {id:6, grade:'小2',gradeEmoji:'🔵',name:'ひき算③', desc:'〜100のひき算',   type:'sub', a:[20,100],b:[10,80], minR:0},
+  {id:7, grade:'小2',gradeEmoji:'🔵',name:'たし算④', desc:'〜1000のたし算',  type:'add', a:[100,500],b:[100,500],maxR:1000},
+  {id:8, grade:'小2',gradeEmoji:'🔵',name:'かけ算①', desc:'2〜5のだん',      type:'mul', tables:[2,3,4,5]},
+  {id:9, grade:'小2',gradeEmoji:'🔵',name:'かけ算②', desc:'6〜9のだん',      type:'mul', tables:[6,7,8,9]},
+  {id:10,grade:'小2',gradeEmoji:'🔵',name:'かけ算③', desc:'ぜんぶのだん',    type:'mul', tables:[2,3,4,5,6,7,8,9]},
+  {id:11,grade:'小3',gradeEmoji:'🟣',name:'わり算①', desc:'かんたんなわり算',type:'div', divisors:[2,3,4,5]},
+  {id:12,grade:'小3',gradeEmoji:'🟣',name:'ひき算④', desc:'〜1000のひき算',  type:'sub', a:[200,1000],b:[100,800],minR:0},
+  {id:13,grade:'小3',gradeEmoji:'🟣',name:'わり算②', desc:'6〜9のわり算',    type:'div', divisors:[6,7,8,9]},
+  {id:14,grade:'小3',gradeEmoji:'🟣',name:'かけ算④', desc:'2けた×1けた',    type:'mul2',a:[11,25], b:[2,9]},
+  {id:15,grade:'小3',gradeEmoji:'🟣',name:'わり算③', desc:'あまりのあるわり算',type:'divr',divisors:[2,3,4,5,6,7,8,9]},
+];
+
+const SPEED_CFG = {
+  add:{fast:5000,slow:15000}, sub:{fast:6000,slow:18000},
+  mul:{fast:4000,slow:12000}, mul2:{fast:9000,slow:22000},
+  div:{fast:6000,slow:16000}, divr:{fast:9000,slow:22000},
+};
+const DIFF_LABELS = [
+  {cls:'easy',  text:'🐢 やさしい'},
+  {cls:'normal',text:'⭐ ふつう'},
+  {cls:'hard',  text:'🔥 むずかしい'},
+];
+const REQUIRED_CORRECT = 20;
+const MAX_LIVES = 3;
+const SPEED_WINDOW = 4;
+const SESSION_MINUTES = 30;
+
+// ============================
+// STATE
+// ============================
+let state = {playerName:'',stars:0,cleared:[],stageProgress:{},sessionCount:0};
+let session = {};   // current stage session
+let sessMgr = {};   // 30-min session manager
+let timerInterval = null;
+let sessTimerInterval = null;
+
+// ============================
+// PERSISTENCE
+// ============================
+function saveState(){localStorage.setItem('juku_student_'+state.playerName,JSON.stringify(state));}
+function loadState(name){
+  const raw=localStorage.getItem('juku_student_'+name);
+  if(raw){state=JSON.parse(raw);state.playerName=name;}
+  else{state={playerName:name,stars:0,cleared:[],stageProgress:{},sessionCount:0};}
+}
+function isCleared(id){return state.cleared.includes(id);}
+function isAvailable(id){return id===1||isCleared(id-1);}
+
+// ============================
+// SCREEN NAV
+// ============================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ============================
+// SESSION TIMER
+// ============================
+function startSessionTimer(){
+  clearInterval(sessTimerInterval);
+  sessMgr.startTime = Date.now();
+  sessMgr.totalMs = SESSION_MINUTES * 60 * 1000;
+  updateTimerDisplay();
+  sessTimerInterval = setInterval(()=>{
+    updateTimerDisplay();
+    const elapsed = Date.now() - sessMgr.startTime;
+    if(elapsed >= sessMgr.totalMs){
+      clearInterval(sessTimerInterval);
+      endSession();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(){
+  const elapsed = Date.now() - sessMgr.startTime;
+  const remaining = Math.max(0, sessMgr.totalMs - elapsed);
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  const str = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  ['map-timer'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = str;
+    el.className = 'sess-timer' + (remaining<=300000?' danger': remaining<=600000?' warn':'');
+  });
+}
+
+function endSession(){
+  clearInterval(sessTimerInterval);
+  stopTimer();
+  showSummary();
+}
+
+// ============================
+// LOGIN
+// ============================
+function startGame(){
+  const name = document.getElementById('name-input').value.trim();
+  if(!name){document.getElementById('name-input').focus();return;}
+  loadState(name);
+  state.sessionCount = (state.sessionCount||0)+1;
+  document.getElementById('header-name').textContent = name+'さん';
+  document.getElementById('header-stars').textContent = state.stars;
+  // Init session manager
+  sessMgr = {
+    startTime: null, totalMs: SESSION_MINUTES*60*1000,
+    reviewScore: 0, reviewTotal: 0, reviewTimes: [],
+    stagesAtStart: [...state.cleared],
+    stagesNewlyCleared: [],
+    totalCorrect: 0, totalAttempts: 0,
+    bestStreak: 0, lastDiffTier: 1, lastStageWorked: null,
+  };
+  const cleared = STAGES.filter(s=>isCleared(s.id));
+  if(cleared.length > 0){
+    startReviewTest();
+  } else {
+    startSessionTimer();
+    renderMap();
+    showScreen('map');
+  }
+}
+document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+
+// ============================
+// REVIEW TEST
+// ============================
+let reviewState = {problems:[],current:0,correct:0,answers:[],waiting:false,currentAnswer:'',startTime:0};
+
+function startReviewTest(){
+  const cleared = STAGES.filter(s=>isCleared(s.id));
+  const problems = [];
+  for(let i=0;i<10;i++){
+    const stage = cleared[Math.floor(Math.random()*cleared.length)];
+    problems.push({stage, problem:generateProblem(stage,1)});
+  }
+  reviewState = {problems,current:0,correct:0,answers:[],waiting:false,currentAnswer:'',startTime:0};
+  showScreen('review');
+  showReviewProblem();
+}
+
+function showReviewProblem(){
+  const idx = reviewState.current;
+  if(idx >= reviewState.problems.length){ showReviewResult(); return; }
+  const {stage,problem} = reviewState.problems[idx];
+  reviewState.currentAnswer = '';
+  reviewState.waiting = false;
+  reviewState.startTime = Date.now();
+  // progress
+  const pct = (idx/10)*100;
+  document.getElementById('rev-prog-fill').style.width = pct+'%';
+  document.getElementById('rev-q-num').textContent = `${idx+1} / 10`;
+  // problem
+  document.getElementById('rev-q-hint').textContent = problem.hint || `（${stage.name}）`;
+  document.getElementById('rev-q-text').innerHTML = problem.display.map(t=>{
+    if(t==='?') return '';
+    if(['+','−','×','÷'].includes(t)) return `<span class="q-op">${t}</span>`;
+    return `<span>${t}</span>`;
+  }).join('');
+  updateRevAnswerDisplay();
+  document.getElementById('rev-question-box').className='question-box';
+  document.getElementById('rev-feedback-msg').textContent='';
+  document.getElementById('rev-ok-btn').disabled=false;
+  document.getElementById('review-problem-area').style.display='flex';
+  document.getElementById('review-result-area').style.display='none';
+}
+
+function updateRevAnswerDisplay(){
+  const el=document.getElementById('rev-ans-display');
+  if(!reviewState.currentAnswer){el.textContent='　';el.className='answer-display empty';}
+  else{el.textContent=reviewState.currentAnswer;el.className='answer-display';}
+}
+
+function revNumPress(n){
+  if(reviewState.waiting) return;
+  if(reviewState.currentAnswer.length>=4) return;
+  reviewState.currentAnswer+=n;
+  updateRevAnswerDisplay();
+}
+function revNumDel(){
+  if(reviewState.waiting) return;
+  reviewState.currentAnswer=reviewState.currentAnswer.slice(0,-1);
+  updateRevAnswerDisplay();
+}
+function revSubmit(){
+  if(reviewState.waiting||!reviewState.currentAnswer) return;
+  document.getElementById('rev-ok-btn').disabled=true;
+  const elapsed = Date.now()-reviewState.startTime;
+  sessMgr.reviewTimes.push(elapsed);
+  const {problem} = reviewState.problems[reviewState.current];
+  const correct = parseInt(reviewState.currentAnswer)===problem.answer;
+  if(correct) reviewState.correct++;
+  reviewState.answers.push({correct,elapsed});
+  const box=document.getElementById('rev-question-box');
+  const fb=document.getElementById('rev-feedback-msg');
+  box.className='question-box '+(correct?'correct':'wrong');
+  if(!correct){
+    fb.textContent=`こたえは ${problem.answer} だよ`;
+    fb.className='feedback-msg ng';
+  } else {
+    fb.textContent='せいかい！ 🎉';
+    fb.className='feedback-msg ok';
+  }
+  reviewState.waiting=true;
+  reviewState.current++;
+  setTimeout(showReviewProblem, correct?500:1000);
+}
+
+function showReviewResult(){
+  sessMgr.reviewScore = reviewState.correct;
+  sessMgr.reviewTotal = 10;
+  const pct = Math.round((reviewState.correct/10)*100);
+  const icon = pct>=80?'🌟':pct>=60?'👍':'💪';
+  const msg = pct>=90?'かんぺき！':pct>=70?'よくできました！':pct>=50?'がんばりました！':'つぎはもっとできるよ！';
+  document.getElementById('rev-prog-fill').style.width='100%';
+  document.getElementById('review-result-area').innerHTML=`
+    <div class="review-result">
+      <div style="font-size:4rem">${icon}</div>
+      <div class="rev-score">${reviewState.correct}<span style="font-size:1.5rem;color:var(--muted)">/10</span></div>
+      <div class="rev-score-label">${msg}</div>
+      <div class="rev-detail-grid">
+        <div class="rev-detail-item"><div class="rev-detail-num">${pct}%</div><div class="rev-detail-lbl">せいかいりつ</div></div>
+        <div class="rev-detail-item"><div class="rev-detail-num">${state.cleared.length}</div><div class="rev-detail-lbl">クリアすてーじ</div></div>
+      </div>
+      <button class="proceed-btn" onclick="proceedToMap()">🗺 がくしゅうをはじめる！</button>
+    </div>`;
+  document.getElementById('review-problem-area').style.display='none';
+  document.getElementById('review-result-area').style.display='flex';
+}
+
+function proceedToMap(){
+  startSessionTimer();
+  renderMap();
+  showScreen('map');
+}
+
+// ============================
+// MAP
+// ============================
+function renderMap(){
+  document.getElementById('header-stars').textContent=state.stars;
+  renderOverallProgress();
+  const grades=[...new Set(STAGES.map(s=>s.grade))];
+  document.getElementById('grade-sections').innerHTML=grades.map(grade=>{
+    const stages=STAGES.filter(s=>s.grade===grade);
+    const cnt=stages.filter(s=>isCleared(s.id)).length;
+    return `<div class="grade-section">
+      <div class="grade-banner">
+        ${stages[0].gradeEmoji} <strong>${grade}</strong>
+        <span style="margin-left:auto;font-size:0.85rem;color:var(--muted)">${cnt}/${stages.length} クリア</span>
+      </div>
+      <div class="stage-grid">${stages.map(renderStageBtn).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverallProgress(){
+  const total=STAGES.length;
+  const cleared=state.cleared.length;
+  const pct=Math.round((cleared/total)*100);
+  const grades=[...new Set(STAGES.map(s=>s.grade))];
+  const gradeBadges=grades.map(g=>{
+    const gs=STAGES.filter(s=>s.grade===g);
+    const cc=gs.filter(s=>isCleared(s.id)).length;
+    const cls=cc===gs.length?'complete':cc>0?'partial':'locked';
+    const emoji=cc===gs.length?'✅':cc>0?'📖':'🔒';
+    return `<span class="op-grade-badge ${cls}">${emoji} ${g} ${cc}/${gs.length}</span>`;
+  }).join('');
+  const next=STAGES.find(s=>isAvailable(s.id)&&!isCleared(s.id));
+  document.getElementById('overall-progress').innerHTML=`
+    <div class="op-title">
+      <span>🗺 ぜんたいのしんちょく（小1〜小3）</span>
+      <span class="op-pct">${pct}%</span>
+    </div>
+    <div class="op-bar"><div class="op-fill" style="width:${pct}%"></div></div>
+    <div class="op-markers">
+      <span>はじめ</span><span>小1おわり</span><span>小2おわり</span><span>ゴール🏁</span>
+    </div>
+    <div class="op-grade-badges">${gradeBadges}</div>
+    ${next?`<div style="margin-top:0.5rem;font-size:0.8rem;color:var(--muted)">▶ つぎのステージ: <strong>${next.name}</strong>（${next.desc}）</div>`:'<div style="margin-top:0.5rem;font-size:0.85rem;font-weight:700;color:var(--green)">🎓 ぜんぶクリア！すごい！</div>'}`;
+}
+
+function renderStageBtn(s){
+  const cleared=isCleared(s.id),avail=isAvailable(s.id);
+  const cls=cleared?'cleared':avail?'available':'locked';
+  const prog=state.stageProgress[s.id];
+  const stars=cleared?(prog?.bestStreak>=10?'⭐⭐⭐':prog?.bestStreak>=5?'⭐⭐':'⭐'):'';
+  if(!avail) return `<button class="stage-btn locked" disabled>
+    <div style="font-size:1.5rem">🔒</div><div class="stage-name" style="font-size:0.65rem">${s.name}</div>
+  </button>`;
+  return `<button class="stage-btn ${cls}" onclick="startStage(${s.id})">
+    ${cleared?'<div class="cleared-badge">✓</div>':''}
+    <div class="stage-num">${s.id}</div>
+    <div class="stage-name">${s.name}</div>
+    <div class="stage-stars">${cleared?stars:'▶'}</div>
+  </button>`;
+}
+
+function goToMap(){stopTimer();renderMap();showScreen('map');}
+
+// ============================
+// DIFFICULTY PARAMS
+// ============================
+function getDiffParams(stage,tier){
+  const s=stage;
+  switch(s.type){
+    case 'add':{
+      const sc=[0.4,1.0,1.6][tier];
+      return{a:[s.a[0],Math.max(s.a[0]+1,Math.round(s.a[1]*sc))],b:[s.b[0],Math.max(s.b[0]+1,Math.round(s.b[1]*sc))],maxR:s.maxR};
+    }
+    case 'sub':{
+      const sc=[0.45,1.0,1.5][tier];
+      return{a:[s.a[0],Math.max(s.a[0]+2,Math.round(s.a[1]*sc))],b:[s.b[0],Math.max(s.b[0]+1,Math.round(s.b[1]*sc))],minR:s.minR};
+    }
+    case 'mul':{
+      const half=s.tables.slice(0,Math.ceil(s.tables.length/2));
+      const bRanges=[[1,4],[1,7],[5,9]];
+      return{tables:tier===0?half:s.tables,bRange:bRanges[tier]};
+    }
+    case 'mul2':{
+      const aRanges=[[11,17],[11,25],[20,39]];
+      const bRanges=[[2,5],[2,9],[6,9]];
+      return{a:aRanges[tier],b:bRanges[tier]};
+    }
+    case 'div':{
+      const qRanges=[[1,5],[1,9],[5,9]];
+      return{divisors:s.divisors,qRange:qRanges[tier]};
+    }
+    case 'divr':{
+      const qRanges=[[1,4],[1,7],[5,9]];
+      return{divisors:s.divisors,qRange:qRanges[tier]};
+    }
+  }
+  return{};
+}
+
+// ============================
+// PROBLEM GENERATION
+// ============================
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+function generateProblem(stage,tier){
+  const p=getDiffParams(stage,tier);
+  let a,b,answer,display,hint='';
+  switch(stage.type){
+    case 'add':
+      do{a=randInt(p.a[0],p.a[1]);b=randInt(p.b[0],p.b[1]);}while(a+b>p.maxR);
+      answer=a+b; display=[a,'+',b,'=','?']; break;
+    case 'sub':
+      let t=0;
+      do{a=randInt(p.a[0],p.a[1]);b=randInt(p.b[0],Math.min(p.b[1],a-1));t++;}
+      while((a-b<(p.minR??0)||a<=b)&&t<50);
+      answer=a-b; display=[a,'−',b,'=','?']; break;
+    case 'mul':{
+      const tbl=p.tables[randInt(0,p.tables.length-1)];
+      b=randInt(p.bRange[0],p.bRange[1]);a=tbl;
+      answer=a*b; display=[a,'×',b,'=','?']; hint=`${a}のだん`; break;}
+    case 'mul2':
+      a=randInt(p.a[0],p.a[1]);b=randInt(p.b[0],p.b[1]);
+      answer=a*b; display=[a,'×',b,'=','?']; break;
+    case 'div':{
+      const d=p.divisors[randInt(0,p.divisors.length-1)];
+      const qr=p.qRange||[1,9];const q=randInt(qr[0],qr[1]);
+      answer=q;a=d*q;b=d; display=[a,'÷',b,'=','?']; break;}
+    case 'divr':{
+      const dr=p.divisors[randInt(0,p.divisors.length-1)];
+      const qrr=p.qRange||[1,7];const q=randInt(qrr[0],qrr[1]);
+      const rem=randInt(1,dr-1);a=dr*q+rem;b=dr;
+      answer=`${q}あまり${rem}`; display=[a,'÷',b,'=','?']; hint='こたえ: ○あまり○'; break;}
+  }
+  return{a,b,answer,display,hint};
+}
+
+// ============================
+// START STAGE
+// ============================
+function startStage(id){
+  const stage=STAGES.find(s=>s.id===id);
+  session={
+    stageId:id,correct:0,attempts:0,
+    lives:MAX_LIVES,streak:0,bestStreak:0,
+    currentAnswer:'',problem:null,waiting:false,
+    diffTier:1,speedHistory:[],windowCorrect:0,windowAttempts:0,
+    problemStartTime:0,
+  };
+  sessMgr.lastStageWorked = stage.name;
+  document.getElementById('prob-stage-title').textContent=`Stage ${id}「${stage.name}」`;
+  document.getElementById('prob-stage-desc').textContent=stage.desc;
+  showScreen('problem');
+  updateDiffBadge();
+  nextProblem();
+}
+
+function nextProblem(){
+  const stage=STAGES.find(s=>s.id===session.stageId);
+  session.problem=generateProblem(stage,session.diffTier);
+  session.currentAnswer='';session.waiting=false;
+  session.problemStartTime=Date.now();
+  updateAnswerDisplay();renderQuestion();updateProgress();
+  document.getElementById('question-box').className='question-box';
+  document.getElementById('feedback-msg').textContent='';
+  document.getElementById('feedback-msg').className='feedback-msg';
+  document.getElementById('ok-btn').disabled=false;
+  startTimerBar(stage.type);
+}
+
+// ============================
+// TIMER BAR
+// ============================
+function startTimerBar(type){
+  stopTimer();
+  const cfg=SPEED_CFG[type]||SPEED_CFG.add;
+  const total=cfg.slow*1.2;
+  const bar=document.getElementById('timer-bar');
+  bar.style.width='100%';bar.style.background='#27ae60';
+  const start=Date.now();
+  timerInterval=setInterval(()=>{
+    const pct=Math.max(0,100-((Date.now()-start)/total)*100);
+    bar.style.width=pct+'%';
+    bar.style.background=pct>60?'#27ae60':pct>30?'#f39c12':'#e74c3c';
+    if(pct<=0)stopTimer();
+  },80);
+}
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+
+// ============================
+// RENDER QUESTION
+// ============================
+function renderQuestion(){
+  const{display,hint}=session.problem;
+  document.getElementById('q-hint').textContent=hint||'';
+  document.getElementById('q-text').innerHTML=display.map(t=>{
+    if(t==='?') return '';
+    if(['+','−','×','÷'].includes(t)) return `<span class="q-op">${t}</span>`;
+    return `<span>${t}</span>`;
+  }).join('');
+}
+
+function updateProgress(){
+  const pct=(session.correct/REQUIRED_CORRECT)*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prob-count').textContent=`${session.correct} / ${REQUIRED_CORRECT}もん`;
+  document.getElementById('prob-streak').textContent=`🔥 ${session.streak}れんぞく`;
+  document.getElementById('prob-hearts').textContent='❤️'.repeat(session.lives)+'🖤'.repeat(MAX_LIVES-session.lives);
+}
+
+function updateAnswerDisplay(){
+  const el=document.getElementById('ans-display');
+  if(!session.currentAnswer){el.textContent='　';el.className='answer-display empty';}
+  else{el.textContent=session.currentAnswer;el.className='answer-display';}
+}
+
+// ============================
+// ADAPTIVE DIFFICULTY
+// ============================
+function updateDiffTier(elapsed,wasCorrect){
+  const stage=STAGES.find(s=>s.id===session.stageId);
+  const cfg=SPEED_CFG[stage.type]||SPEED_CFG.add;
+  session.windowAttempts++;
+  if(wasCorrect){session.windowCorrect++;session.speedHistory.push(elapsed);}
+  if(elapsed!=null){
+    const sec=(elapsed/1000).toFixed(1);
+    const spd=elapsed<cfg.fast?'⚡ はやい！':elapsed>cfg.slow?'🐢 ゆっくり':`⏱ ${sec}s`;
+    document.getElementById('speed-badge').textContent=spd;
+  }
+  if(session.windowAttempts<SPEED_WINDOW) return;
+  const acc=session.windowCorrect/session.windowAttempts;
+  const recent=session.speedHistory.slice(-SPEED_WINDOW);
+  const avgTime=recent.length>0?recent.reduce((a,b)=>a+b,0)/recent.length:cfg.slow;
+  const old=session.diffTier;
+  if(avgTime<cfg.fast&&acc>=0.8) session.diffTier=Math.min(2,session.diffTier+1);
+  else if(avgTime>cfg.slow||acc<0.55) session.diffTier=Math.max(0,session.diffTier-1);
+  session.windowCorrect=0;session.windowAttempts=0;
+  if(session.diffTier!==old){updateDiffBadge();showDiffPopup(session.diffTier>old);}
+}
+
+function updateDiffBadge(){
+  const d=DIFF_LABELS[session.diffTier];
+  const el=document.getElementById('diff-badge');
+  el.textContent=d.text;el.className='diff-badge '+d.cls;
+}
+
+function showDiffPopup(up){
+  const popup=document.getElementById('diff-popup');
+  const d=DIFF_LABELS[session.diffTier];
+  popup.innerHTML=up?`🔼 むずかしくなったよ！<br><span style="font-size:1rem">${d.text}</span>`
+                    :`🔽 やさしくなったよ！<br><span style="font-size:1rem">${d.text}</span>`;
+  popup.classList.add('show');
+  setTimeout(()=>popup.classList.remove('show'),1800);
+}
+
+// ============================
+// NUMPAD
+// ============================
+function numPress(n){
+  if(session.waiting) return;
+  const stage=STAGES.find(s=>s.id===session.stageId);
+  if(stage?.type==='divr'){handleDivrInput(n);return;}
+  if(session.currentAnswer.length>=4) return;
+  session.currentAnswer+=n;updateAnswerDisplay();
+}
+function handleDivrInput(n){
+  const cur=session.currentAnswer;
+  if(!cur.includes('|')){if(cur.length<2)session.currentAnswer=cur+n;}
+  else{const p=cur.split('|');if(p[1].length<2)session.currentAnswer=p[0]+'|'+p[1]+n;}
+  displayDivr();
+}
+function displayDivr(){
+  const cur=session.currentAnswer;
+  const el=document.getElementById('ans-display');
+  if(!cur){el.textContent='　';el.className='answer-display empty';return;}
+  const p=cur.split('|');
+  el.textContent=p.length>1?p[0]+'あまり'+p[1]:p[0];
+  el.className='answer-display';
+}
+function numDel(){
+  if(session.waiting) return;
+  const stage=STAGES.find(s=>s.id===session.stageId);
+  session.currentAnswer=session.currentAnswer.slice(0,-1);
+  if(stage?.type==='divr')displayDivr();else updateAnswerDisplay();
+}
+
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('screen-problem').classList.contains('active')) return;
+  if(e.key>='0'&&e.key<='9') numPress(e.key);
+  else if(e.key==='Backspace') numDel();
+  else if(e.key==='Enter') submitAnswer();
+});
+
+// ============================
+// SUBMIT
+// ============================
+function submitAnswer(){
+  if(session.waiting||!session.currentAnswer) return;
+  document.getElementById('ok-btn').disabled=true;
+  stopTimer();
+  const elapsed=Date.now()-session.problemStartTime;
+  const stage=STAGES.find(s=>s.id===session.stageId);
+  const userAns=session.currentAnswer;
+  const correctAns=session.problem.answer;
+  let isCorrect;
+  if(stage.type==='divr'){
+    const p=userAns.split('|');
+    isCorrect=(p.length===2?`${p[0]}あまり${p[1]}`:'')===String(correctAns);
+  } else {
+    isCorrect=parseInt(userAns)===correctAns;
+  }
+  session.attempts++;
+  const box=document.getElementById('question-box');
+  const fb=document.getElementById('feedback-msg');
+  if(isCorrect){
+    session.correct++;session.streak++;
+    if(session.streak>session.bestStreak)session.bestStreak=session.streak;
+    box.className='question-box correct';
+    fb.textContent=['せいかい！ 🎉','すごい！ ✨','やったね！ 🌟','かんぺき！ 💯'][Math.floor(Math.random()*4)];
+    fb.className='feedback-msg ok';
+    // accumulate into sessMgr
+    sessMgr.totalCorrect++;
+  } else {
+    session.lives--;session.streak=0;
+    box.className='question-box wrong';
+    fb.textContent=`こたえは ${correctAns} だよ 💦`;
+    fb.className='feedback-msg ng';
+  }
+  sessMgr.totalAttempts++;
+  if(session.bestStreak>sessMgr.bestStreak) sessMgr.bestStreak=session.bestStreak;
+  sessMgr.lastDiffTier=session.diffTier;
+  session.waiting=true;
+  updateProgress();
+  updateDiffTier(isCorrect?elapsed:null,isCorrect);
+  if(session.lives<=0){
+    setTimeout(()=>{alert('ライフがなくなりました。もう一度チャレンジしよう！');startStage(session.stageId);},800);
+    return;
+  }
+  if(session.correct>=REQUIRED_CORRECT){setTimeout(showClear,800);return;}
+  setTimeout(nextProblem,isCorrect?600:1400);
+}
+
+// ============================
+// STAGE CLEAR
+// ============================
+function showClear(){
+  const id=session.stageId;
+  const stage=STAGES.find(s=>s.id===id);
+  const acc=Math.round((session.correct/session.attempts)*100);
+  const earnedStars=session.bestStreak>=15?3:session.bestStreak>=7?2:1;
+  const wasNew=!isCleared(id);
+  if(wasNew){state.cleared.push(id);sessMgr.stagesNewlyCleared.push(stage.name);}
+  state.stars+=earnedStars;
+  state.stageProgress[id]={correct:session.correct,attempts:session.attempts,bestStreak:session.bestStreak,stars:earnedStars,acc};
+  saveState();
+  document.getElementById('cs-correct').textContent=session.correct;
+  document.getElementById('cs-acc').textContent=acc+'%';
+  document.getElementById('cs-streak').textContent=session.bestStreak;
+  document.getElementById('cs-stars').textContent='+'+earnedStars;
+  document.getElementById('clear-stars').textContent='⭐'.repeat(earnedStars)+'☆'.repeat(3-earnedStars);
+  document.getElementById('clear-msg').textContent=`「${stage.name}」をクリア！おめでとう！`;
+  document.getElementById('header-stars').textContent=state.stars;
+  const next=STAGES.find(s=>s.id===id+1);
+  const btn=document.getElementById('next-stage-btn');
+  if(next){btn.style.display='block';btn.textContent=`つぎのステージ「${next.name}」へ →`;}
+  else{btn.style.display='none';}
+  showScreen('clear');
+  spawnConfetti();
+}
+
+function goToNextStage(){
+  const nextId=session.stageId+1;
+  if(STAGES.find(s=>s.id===nextId)) startStage(nextId);
+  else goToMap();
+}
+
+// ============================
+// SESSION SUMMARY
+// ============================
+function showSummary(){
+  clearInterval(sessTimerInterval);
+  const now=new Date();
+  const dateStr=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+  const elapsed=sessMgr.startTime?Math.round((Date.now()-sessMgr.startTime)/60000):30;
+  const totalC=state.cleared.length;
+  const totalS=STAGES.length;
+  const pct=Math.round((totalC/totalS)*100);
+  const acc=sessMgr.totalAttempts>0?Math.round((sessMgr.totalCorrect/sessMgr.totalAttempts)*100):0;
+  const revPct=sessMgr.reviewTotal>0?Math.round((sessMgr.reviewScore/sessMgr.reviewTotal)*100):null;
+  const avgRevTime=sessMgr.reviewTimes.length>0
+    ?(sessMgr.reviewTimes.reduce((a,b)=>a+b,0)/sessMgr.reviewTimes.length/1000).toFixed(1)+'s'
+    :'—';
+  document.getElementById('summary-date').textContent=`${dateStr} ／ ${elapsed}分`;
+  // Review card
+  if(sessMgr.reviewTotal>0){
+    document.getElementById('sum-rev-score').textContent=`${sessMgr.reviewScore}/10`;
+    document.getElementById('sum-rev-pct').textContent=revPct+'%';
+    document.getElementById('sum-rev-time').textContent=avgRevTime;
+  } else {
+    document.getElementById('sum-rev-score').textContent='—';
+    document.getElementById('sum-rev-pct').textContent='—';
+    document.getElementById('sum-rev-time').textContent='—';
+  }
+  // Learning card
+  document.getElementById('sum-correct').textContent=sessMgr.totalCorrect;
+  document.getElementById('sum-acc').textContent=acc+'%';
+  document.getElementById('sum-streak').textContent=sessMgr.bestStreak;
+  document.getElementById('sum-stage').textContent=sessMgr.lastStageWorked||'—';
+  document.getElementById('sum-diff').textContent=DIFF_LABELS[sessMgr.lastDiffTier].text;
+  // Overall progress
+  document.getElementById('sum-ops-fill').style.width=pct+'%';
+  document.getElementById('sum-ops-text').textContent=`${totalC} / ${totalS} ステージ`;
+  document.getElementById('sum-ops-pct').textContent=pct+'%';
+  const grades=[...new Set(STAGES.map(s=>s.grade))];
+  document.getElementById('sum-grade-detail').innerHTML=grades.map(g=>{
+    const gs=STAGES.filter(s=>s.grade===g);
+    const cc=gs.filter(s=>isCleared(s.id)).length;
+    return `${g}: ${cc}/${gs.length}`;
+  }).join(' ／ ');
+  // Auto comment
+  document.getElementById('sum-comment').innerHTML=generateComment(acc,sessMgr.bestStreak,sessMgr.lastDiffTier,sessMgr.stagesNewlyCleared);
+  // Build print report
+  buildPrintReport(dateStr,elapsed,acc,revPct,avgRevTime,pct,totalC,totalS);
+  showScreen('summary');
+}
+
+function generateComment(acc,streak,diffTier,newStages){
+  let main='';
+  if(acc>=90)        main='とてもよくできました！集中力が高く、自信を持って取り組んでいます。';
+  else if(acc>=75)   main='よく頑張りました。着実に力がついています。';
+  else if(acc>=55)   main='真剣に取り組んでいます。繰り返しの練習で自信がついてきます。';
+  else               main='今日は難しい問題に挑戦しました。焦らず自分のペースで進みましょう。';
+  let diff='';
+  if(diffTier===2)   diff='難易度が自動的に上がるほど速く正確に解けています🔥';
+  else if(diffTier===0) diff='自分のペースでじっくりと取り組んでいます🐢';
+  let bonus='';
+  if(streak>=10)     bonus=`連続${streak}問正解という素晴らしい集中力を見せました！`;
+  let stage='';
+  if(newStages.length>0) stage=`✅ 「${newStages.join('」「')}」を新たにクリアしました！`;
+  return [main,diff,bonus,stage].filter(Boolean).join('<br>');
+}
+
+function startNextSession(){
+  state.sessionCount=(state.sessionCount||0)+1;
+  saveState();
+  sessMgr={
+    startTime:null,totalMs:SESSION_MINUTES*60*1000,
+    reviewScore:0,reviewTotal:0,reviewTimes:[],
+    stagesAtStart:[...state.cleared],stagesNewlyCleared:[],
+    totalCorrect:0,totalAttempts:0,bestStreak:0,lastDiffTier:1,lastStageWorked:null,
+  };
+  const cleared=STAGES.filter(s=>isCleared(s.id));
+  if(cleared.length>0) startReviewTest();
+  else{startSessionTimer();renderMap();showScreen('map');}
+}
+
+// ============================
+// PRINT REPORT
+// ============================
+function buildPrintReport(dateStr,elapsed,acc,revPct,avgRevTime,totalPct,totalC,totalS){
+  const grades=[...new Set(STAGES.map(s=>s.grade))];
+  const gradeRows=grades.map(g=>{
+    const gs=STAGES.filter(s=>s.grade===g);
+    const cc=gs.filter(s=>isCleared(s.id)).length;
+    const icon=cc===gs.length?'✅':cc>0?'📖':'—';
+    return `<tr><td>${g}</td><td>${icon} ${cc} / ${gs.length} ステージ</td></tr>`;
+  }).join('');
+  const newStageChips=sessMgr.stagesNewlyCleared.length>0
+    ?sessMgr.stagesNewlyCleared.map(n=>`<span class="report-stage-chip new">${n}</span>`).join('')
+    :'<span style="color:#999">なし</span>';
+  const prevChips=(sessMgr.stagesAtStart||[]).slice(-3).map(id=>{
+    const s=STAGES.find(x=>x.id===id);
+    return s?`<span class="report-stage-chip">${s.name}</span>`:'';
+  }).join('');
+  const comment=generateComment(acc,sessMgr.bestStreak,sessMgr.lastDiffTier,sessMgr.stagesNewlyCleared)
+    .replace(/<br>/g,' ');
+  const revRow=sessMgr.reviewTotal>0
+    ?`<tr><td>ふくしゅうテスト</td><td>${sessMgr.reviewScore}/10問（${revPct}%）</td></tr>`
+    :`<tr><td>ふくしゅうテスト</td><td>初回セッションのため実施なし</td></tr>`;
+
+  document.getElementById('report-content').innerHTML=`
+    <div class="report-header">
+      <div>
+        <h1>まなび塾 ご報告書</h1>
+        <div style="font-size:0.85rem;color:#555;margin-top:4px">生徒名：${state.playerName} さん ／ 第${state.sessionCount||1}回</div>
+      </div>
+      <div class="report-meta">
+        ${dateStr}<br>学習時間：約${elapsed}分
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>📊 今日の学習結果</h3>
+      <table class="report-table">
+        ${revRow}
+        <tr><td>学習ステージ</td><td>${sessMgr.lastStageWorked||'—'}</td></tr>
+        <tr><td>正解数／問題数</td><td>${sessMgr.totalCorrect} ／ ${sessMgr.totalAttempts} 問
+          <div class="report-bar"><div class="report-bar-fill" style="width:${acc}%"></div></div>
+          正解率 ${acc}%
+        </td></tr>
+        <tr><td>最高連続正解</td><td>${sessMgr.bestStreak} 問連続</td></tr>
+        <tr><td>難易度レベル</td><td>${DIFF_LABELS[sessMgr.lastDiffTier].text.replace(/[🐢⭐🔥]/g,'').trim()}</td></tr>
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h3>🆕 今日クリアしたステージ</h3>
+      <div class="report-stage-list">${newStageChips}</div>
+    </div>
+
+    <div class="report-section">
+      <h3>🗺 全体の進捗（小学1〜3年生）</h3>
+      <table class="report-table">
+        <tr><td>総合進捗</td><td>${totalC} / ${totalS} ステージ完了（${totalPct}%）
+          <div class="report-bar"><div class="report-bar-fill" style="width:${totalPct}%"></div></div>
+        </td></tr>
+        ${gradeRows}
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h3>💬 今日のがんばりポイント</h3>
+      <div style="border:1px solid #ddd;border-radius:4px;padding:0.6rem;font-size:0.9rem;line-height:1.7;background:#fafffe">
+        ${comment}
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h3>✏️ 先生からのメッセージ</h3>
+      <div class="teacher-box"><div class="lines"></div></div>
+    </div>
+
+    <div class="report-footer">
+      まなび塾 ／ ${dateStr} ／ 生徒：${state.playerName} さん（第${state.sessionCount||1}回）
+    </div>`;
+}
+
+function printReport(){
+  window.print();
+}
+
+// ============================
+// CONFETTI
+// ============================
+function spawnConfetti(){
+  const colors=['#f6d365','#fda085','#84fab0','#667eea','#f093fb','#f5576c','#4facfe'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.style.cssText=`left:${Math.random()*100}vw;top:-20px;background:${colors[~~(Math.random()*colors.length)]};transform:rotate(${Math.random()*360}deg);animation-duration:${1.5+Math.random()*1.5}s;animation-delay:${Math.random()*0.5}s;`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),3000);
+    },i*30);
+  }
+}
+
+// ============================
+// INIT
+// ============================
+(function(){
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('juku_student_'));
+  if(keys.length===1) document.getElementById('name-input').value=keys[0].replace('juku_student_','');
+})();
+</script>
+</body>
+</html>

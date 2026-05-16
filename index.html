@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>まなび塾 | 予約システム</title>
+<style>
+  :root {
+    --primary: #4A90D9;
+    --primary-dark: #2c6fad;
+    --accent: #F5A623;
+    --green: #5cb85c;
+    --red: #d9534f;
+    --bg: #F0F4FF;
+    --card: #ffffff;
+    --text: #2d3748;
+    --muted: #718096;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, #2c6fad 100%);
+    color: white; padding: 0 1.5rem; display: flex; align-items: center;
+    justify-content: space-between; height: 64px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .logo { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; }
+  .logo span { color: var(--accent); }
+  .header-nav { display: flex; gap: 1rem; }
+  .header-nav a {
+    color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.9rem;
+    padding: 0.4rem 0.8rem; border-radius: 6px; transition: background 0.2s;
+  }
+  .header-nav a:hover { background: rgba(255,255,255,0.2); color: white; }
+  .header-nav a.active { background: rgba(255,255,255,0.25); color: white; font-weight: 700; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #4A90D9 0%, #6c63ff 100%);
+    color: white; text-align: center; padding: 3rem 1.5rem 4rem;
+  }
+  .hero h1 { font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem; }
+  .hero p { font-size: 1.05rem; opacity: 0.9; margin-bottom: 1.5rem; }
+  .hero-badges { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600;
+  }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+
+  /* SECTION TABS */
+  .tabs { display: flex; gap: 0; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+  .tab-btn {
+    flex: 1; padding: 0.9rem; border: none; background: white; cursor: pointer;
+    font-size: 0.95rem; font-weight: 600; color: var(--muted); transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+  }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f6ff; }
+  .tab-btn:hover:not(.active) { background: #f8f9fa; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CALENDAR */
+  .calendar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: white; padding: 1rem 1.5rem; border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .calendar-header h2 { font-size: 1.1rem; }
+  .nav-btn {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .nav-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+  .calendar-grid {
+    background: white; border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;
+  }
+  .day-headers { display: grid; grid-template-columns: 80px repeat(6, 1fr); background: #f7f8fc; }
+  .day-header {
+    padding: 0.7rem 0.4rem; text-align: center; font-size: 0.8rem; font-weight: 700;
+    color: var(--muted); border-right: 1px solid var(--border);
+  }
+  .day-header.sun { color: #e53e3e; }
+  .day-header.sat { color: #3182ce; }
+  .day-header .date-num { font-size: 1.2rem; color: var(--text); margin-top: 2px; }
+  .day-header.today .date-num {
+    background: var(--primary); color: white; border-radius: 50%;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    margin: 2px auto 0;
+  }
+
+  .time-slot-row { display: grid; grid-template-columns: 80px repeat(6, 1fr); border-top: 1px solid var(--border); }
+  .time-label {
+    padding: 0.6rem 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--border);
+    background: #fafbfd;
+  }
+  .slot {
+    padding: 0.4rem; border-right: 1px solid var(--border); min-height: 70px;
+    position: relative; cursor: pointer; transition: background 0.15s;
+  }
+  .slot:hover { background: #f0f6ff; }
+  .slot.closed { background: #f7f8fc; cursor: not-allowed; }
+  .slot.closed:hover { background: #f7f8fc; }
+  .slot-inner { height: 100%; display: flex; flex-direction: column; gap: 2px; }
+  .booking-chip {
+    background: var(--primary); color: white; border-radius: 4px;
+    padding: 2px 6px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .booking-chip:hover { opacity: 0.85; }
+  .slot-count {
+    font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: auto;
+  }
+  .add-btn-mini {
+    background: none; border: 1px dashed var(--border); border-radius: 4px;
+    color: var(--muted); font-size: 0.75rem; padding: 3px 6px; cursor: pointer;
+    width: 100%; transition: all 0.2s; text-align: center;
+  }
+  .add-btn-mini:hover { border-color: var(--primary); color: var(--primary); background: #f0f6ff; }
+  .slot.closed .add-btn-mini { display: none; }
+
+  /* CAPACITY BAR */
+  .cap-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 4px; }
+  .cap-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.3s; }
+  .cap-fill.warn { background: var(--accent); }
+  .cap-fill.full { background: var(--red); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 100; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; width: 100%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    background: linear-gradient(135deg, var(--primary), #6c63ff);
+    color: white; padding: 1.2rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 1.1rem; }
+  .modal-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 1.5rem; }
+  .slot-info {
+    background: var(--bg); border-radius: 8px; padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem; font-size: 0.9rem; color: var(--muted);
+  }
+  .slot-info strong { color: var(--text); font-size: 1rem; }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--muted); margin-bottom: 0.4rem; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 0.7rem 0.9rem; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 0.95rem; font-weight: 700; font-family: inherit; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,144,217,0.4); }
+  .btn-secondary { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: #c0392b; }
+  .btn-full { width: 100%; justify-content: center; }
+  .modal-footer { display: flex; gap: 0.7rem; justify-content: flex-end; margin-top: 1.2rem; }
+
+  /* BOOKINGS LIST */
+  .bookings-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .booking-card {
+    background: white; border-radius: 12px; padding: 1rem 1.2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex;
+    align-items: center; gap: 1rem; border-left: 4px solid var(--primary);
+  }
+  .booking-card .bc-info { flex: 1; }
+  .booking-card .bc-name { font-weight: 700; font-size: 1rem; }
+  .booking-card .bc-meta { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .booking-card .bc-date { font-size: 0.88rem; font-weight: 600; color: var(--primary); }
+  .booking-badge {
+    background: #e8f4fd; color: var(--primary); border-radius: 6px;
+    padding: 0.2rem 0.6rem; font-size: 0.78rem; font-weight: 700;
+  }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: white; border-radius: 12px; padding: 1.2rem; text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .stat-num { font-size: 2rem; font-weight: 900; color: var(--primary); }
+  .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+
+  /* SEARCH */
+  .search-bar {
+    display: flex; gap: 0.7rem; margin-bottom: 1rem;
+  }
+  .search-bar input {
+    flex: 1; padding: 0.65rem 1rem; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--primary); }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: white; padding: 0.7rem 1.5rem; border-radius: 8px;
+    font-size: 0.9rem; font-weight: 600; z-index: 200; transition: transform 0.3s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { background: var(--green); }
+  #toast.error { background: var(--red); }
+
+  /* INFO PANEL */
+  .info-panel {
+    background: white; border-radius: 12px; padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+  }
+  .info-panel h3 { font-size: 1rem; margin-bottom: 0.8rem; color: var(--primary); }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; }
+  .info-item { font-size: 0.88rem; }
+  .info-item .label { color: var(--muted); font-size: 0.78rem; margin-bottom: 2px; }
+  .info-item .value { font-weight: 600; }
+
+  .curriculum-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.88rem; }
+  .curriculum-table th { background: var(--bg); padding: 0.5rem 0.8rem; text-align: left; font-weight: 700; color: var(--muted); border-bottom: 2px solid var(--border); }
+  .curriculum-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); }
+  .grade-tag { display: inline-block; background: var(--primary); color: white; border-radius: 4px; padding: 1px 8px; font-size: 0.75rem; font-weight: 700; }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty-state .es-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 0.95rem; }
+
+  @media (max-width: 700px) {
+    .day-headers, .time-slot-row { grid-template-columns: 56px repeat(6, 1fr); }
+    .time-label { font-size: 0.68rem; padding: 0.4rem 0.2rem; }
+    .day-header { font-size: 0.72rem; padding: 0.5rem 0.2rem; }
+    .booking-chip { font-size: 0.65rem; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">まなび<span>塾</span> 🌟</div>
+  <nav class="header-nav">
+    <a href="#" class="active">予約カレンダー</a>
+    <a href="student.html">学習システム →</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <h1>🎓 まなび塾 予約システム</h1>
+  <p>小学1年生から、自分のペースで小学3年生の算数まで</p>
+  <div class="hero-badges">
+    <span class="badge">📐 算数専科</span>
+    <span class="badge">👶 小1スタート</span>
+    <span class="badge">🚀 3年生レベルまで</span>
+    <span class="badge">⏱ 自立学習型</span>
+  </div>
+</div>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('calendar')">📅 予約カレンダー</button>
+    <button class="tab-btn" onclick="showTab('bookings')">📋 予約一覧</button>
+    <button class="tab-btn" onclick="showTab('info')">ℹ️ 塾の情報</button>
+  </div>
+
+  <!-- CALENDAR TAB -->
+  <div class="tab-panel active" id="tab-calendar">
+    <div class="calendar-header">
+      <button class="nav-btn" onclick="changeWeek(-1)">◀</button>
+      <h2 id="week-label">2026年5月16日（土）〜 5月22日（金）</h2>
+      <button class="nav-btn" onclick="changeWeek(1)">▶</button>
+    </div>
+    <div class="calendar-grid">
+      <div class="day-headers" id="day-headers"></div>
+      <div id="time-slots"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div>予約あり</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f7f8fc; border:1px solid var(--border)"></div>休館日</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>空きあり</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>満席</div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS TAB -->
+  <div class="tab-panel" id="tab-bookings">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="🔍 お名前で検索..." oninput="renderBookingsList()">
+      <button class="btn btn-secondary" onclick="clearSearch()">クリア</button>
+    </div>
+    <div class="bookings-list" id="bookings-list"></div>
+  </div>
+
+  <!-- INFO TAB -->
+  <div class="tab-panel" id="tab-info">
+    <div class="info-panel">
+      <h3>🏫 塾の基本情報</h3>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">塾名</div><div class="value">まなび塾</div></div>
+        <div class="info-item"><div class="label">対象</div><div class="value">小学1〜3年生</div></div>
+        <div class="info-item"><div class="label">科目</div><div class="value">算数（計算力特化）</div></div>
+        <div class="info-item"><div class="label">定員</div><div class="value">各コマ 5名</div></div>
+        <div class="info-item"><div class="label">授業時間</div><div class="value">50分</div></div>
+        <div class="info-item"><div class="label">月謝</div><div class="value">月4回 ¥8,000</div></div>
+        <div class="info-item"><div class="label">営業日</div><div class="value">火・水・木・土</div></div>
+        <div class="info-item"><div class="label">時間帯</div><div class="value">14:00 / 15:00 / 16:00 / 17:00</div></div>
+      </div>
+    </div>
+    <div class="info-panel">
+      <h3>📚 カリキュラム（小1〜3年生）</h3>
+      <table class="curriculum-table">
+        <thead><tr><th>学年</th><th>ステージ</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr><td><span class="grade-tag">小1</span></td><td>Stage 1〜5</td><td>1〜10のたし算・ひき算 → 20・100まで拡張</td></tr>
+          <tr><td><span class="grade-tag">小2</span></td><td>Stage 6〜10</td><td>1000までの計算・かけ算九九（全段）</td></tr>
+          <tr><td><span class="grade-tag">小3</span></td><td>Stage 11〜15</td><td>わり算・2けたのかけ算・あまりのあるわり算</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:0.8rem; font-size:0.83rem; color:var(--muted);">
+        ✅ 20問連続正解でステージクリア　✅ 正答率85%以上で次のステージへ　✅ 自分のペースで学習可能
+      </p>
+    </div>
+    <div style="text-align:center; margin-top:1rem;">
+      <a href="student.html" class="btn btn-primary" style="text-decoration:none; font-size:1.1rem; padding:1rem 2rem;">
+        🚀 学習システムを開く
+      </a>
+    </div>
+  </div>
+</main>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">📝 新規予約</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="slot-info" id="slot-info"></div>
+      <div id="modal-form-area">
+        <div class="form-row">
+          <div class="form-group">
+            <label>お子さまのお名前 *</label>
+            <input type="text" id="f-name" placeholder="例：山田 太郎">
+          </div>
+          <div class="form-group">
+            <label>学年 *</label>
+            <select id="f-grade">
+              <option value="">選択してください</option>
+              <option value="小1">小学1年生</option>
+              <option value="小2">小学2年生</option>
+              <option value="小3">小学3年生</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>保護者の連絡先（電話番号）</label>
+          <input type="tel" id="f-phone" placeholder="例：090-1234-5678">
+        </div>
+        <div class="form-group">
+          <label>備考</label>
+          <input type="text" id="f-note" placeholder="アレルギー・配慮事項など">
+        </div>
+      </div>
+      <div id="booking-detail-area" style="display:none;"></div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveBooking()">✅ 予約確定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-header" style="background: linear-gradient(135deg, var(--red), #c0392b);">
+      <h3>🗑 予約キャンセル</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="delete-confirm-text" style="margin-bottom:1.2rem; font-size:0.95rem;"></p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">戻る</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">🗑 キャンセルする</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">通知メッセージ</div>
+
+<script>
+// ============================
+// DATA
+// ============================
+const CAPACITY = 5;
+const TIMES = ['14:00', '15:00', '16:00', '17:00'];
+// 0=Sun,1=Mon,...,6=Sat  — open days: Tue(2),Wed(3),Thu(4),Sat(6)
+const OPEN_DAYS = [2, 3, 4, 6];
+const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+
+let weekOffset = 0;
+let currentSlot = null;
+let deleteTarget = null;
+
+function getBookings() {
+  return JSON.parse(localStorage.getItem('juku_bookings') || '[]');
+}
+function saveBookings(b) {
+  localStorage.setItem('juku_bookings', JSON.stringify(b));
+}
+
+// ============================
+// WEEK CALCULATION
+// ============================
+function getWeekStart(offset = 0) {
+  const today = new Date(2026, 4, 16); // 2026-05-16
+  const day = today.getDay();
+  const mon = new Date(today);
+  mon.setDate(today.getDate() - ((day + 6) % 7) + offset * 7); // Monday
+  return mon;
+}
+
+function getWeekDays(offset = 0) {
+  const mon = getWeekStart(offset);
+  return Array.from({length: 7}, (_, i) => {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    return d;
+  });
+}
+
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDisplay(d) {
+  return `${d.getMonth()+1}月${d.getDate()}日（${DAY_NAMES[d.getDay()]}）`;
+}
+
+// ============================
+// RENDER CALENDAR
+// ============================
+function renderCalendar() {
+  const days = getWeekDays(weekOffset);
+  const today = fmtDate(new Date(2026, 4, 16));
+
+  // Week label: Mon–Sun
+  const monD = days[0], sunD = days[6];
+  document.getElementById('week-label').textContent =
+    `${monD.getFullYear()}年${monD.getMonth()+1}月${monD.getDate()}日 〜 ${sunD.getMonth()+1}月${sunD.getDate()}日`;
+
+  // Headers (skip Sunday index=0, show Mon–Sun: days[0..6])
+  const headersEl = document.getElementById('day-headers');
+  headersEl.innerHTML = '<div class="day-header"></div>';
+  days.forEach(d => {
+    const isToday = fmtDate(d) === today;
+    const dow = d.getDay();
+    const cls = dow === 0 ? 'sun' : dow === 6 ? 'sat' : '';
+    headersEl.innerHTML += `
+      <div class="day-header ${cls} ${isToday ? 'today' : ''}">
+        ${DAY_NAMES[dow]}<div class="date-num">${d.getDate()}</div>
+      </div>`;
+  });
+
+  // Time slots
+  const bookings = getBookings();
+  const slotsEl = document.getElementById('time-slots');
+  slotsEl.innerHTML = '';
+  TIMES.forEach(time => {
+    const row = document.createElement('div');
+    row.className = 'time-slot-row';
+    row.innerHTML = `<div class="time-label">${time}</div>`;
+    days.forEach(d => {
+      const dateStr = fmtDate(d);
+      const isOpen = OPEN_DAYS.includes(d.getDay());
+      const slotBookings = bookings.filter(b => b.date === dateStr && b.time === time);
+      const count = slotBookings.length;
+      const full = count >= CAPACITY;
+
+      const cell = document.createElement('div');
+      cell.className = 'slot' + (isOpen ? '' : ' closed');
+
+      if (isOpen) {
+        const pct = (count / CAPACITY) * 100;
+        const barCls = pct >= 100 ? 'full' : pct >= 60 ? 'warn' : '';
+        let chips = slotBookings.map(b =>
+          `<div class="booking-chip" title="${b.name}（${b.grade}）" onclick="showBookingDetail('${b.id}',event)">👤 ${b.name}</div>`
+        ).join('');
+        if (!full) chips += `<button class="add-btn-mini" onclick="openBookingModal('${dateStr}','${time}')">＋ 予約する</button>`;
+        cell.innerHTML = `
+          <div class="slot-inner">${chips}</div>
+          <div class="cap-bar"><div class="cap-fill ${barCls}" style="width:${pct}%"></div></div>
+          <div class="slot-count">${count}/${CAPACITY}名</div>`;
+      } else {
+        cell.innerHTML = `<div style="font-size:0.7rem;color:var(--border);text-align:center;margin-top:1rem;">休</div>`;
+      }
+      row.appendChild(cell);
+    });
+    slotsEl.appendChild(row);
+  });
+}
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  renderCalendar();
+}
+
+// ============================
+// MODAL
+// ============================
+function openBookingModal(date, time) {
+  currentSlot = { date, time };
+  const d = new Date(date + 'T00:00:00');
+  document.getElementById('modal-title').textContent = '📝 新規予約';
+  document.getElementById('slot-info').innerHTML =
+    `<strong>${fmtDisplay(d)} ${time}〜</strong> のご予約`;
+  document.getElementById('modal-form-area').style.display = 'block';
+  document.getElementById('booking-detail-area').style.display = 'none';
+  document.getElementById('modal-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveBooking()">✅ 予約確定</button>`;
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-grade').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function showBookingDetail(id, e) {
+  e.stopPropagation();
+  const b = getBookings().find(x => x.id === id);
+  if (!b) return;
+  const d = new Date(b.date + 'T00:00:00');
+  document.getElementById('modal-title').textContent = '📋 予約詳細';
+  document.getElementById('slot-info').innerHTML =
+    `<strong>${fmtDisplay(d)} ${b.time}〜</strong>`;
+  document.getElementById('modal-form-area').style.display = 'none';
+  document.getElementById('booking-detail-area').style.display = 'block';
+  document.getElementById('booking-detail-area').innerHTML = `
+    <table style="width:100%;font-size:0.92rem;border-collapse:collapse;">
+      <tr><td style="color:var(--muted);padding:6px 0;width:100px">お名前</td><td><strong>${b.name}</strong></td></tr>
+      <tr><td style="color:var(--muted);padding:6px 0">学年</td><td>${b.grade}</td></tr>
+      <tr><td style="color:var(--muted);padding:6px 0">連絡先</td><td>${b.phone || '—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:6px 0">備考</td><td>${b.note || '—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:6px 0">予約ID</td><td style="font-size:0.78rem;color:var(--muted)">${b.id}</td></tr>
+    </table>`;
+  document.getElementById('modal-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="closeModal()">閉じる</button>
+    <button class="btn btn-danger" onclick="openDeleteConfirm('${b.id}')">🗑 キャンセル</button>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  currentSlot = null;
+}
+
+function saveBooking() {
+  const name = document.getElementById('f-name').value.trim();
+  const grade = document.getElementById('f-grade').value;
+  if (!name) { showToast('お名前を入力してください', 'error'); return; }
+  if (!grade) { showToast('学年を選択してください', 'error'); return; }
+  const bookings = getBookings();
+  const id = 'B' + Date.now();
+  bookings.push({
+    id, date: currentSlot.date, time: currentSlot.time,
+    name, grade,
+    phone: document.getElementById('f-phone').value.trim(),
+    note: document.getElementById('f-note').value.trim(),
+    created: new Date().toISOString()
+  });
+  saveBookings(bookings);
+  closeModal();
+  renderCalendar();
+  renderBookingsList();
+  renderStats();
+  showToast(`${name}さんの予約を確定しました ✅`, 'success');
+}
+
+// ============================
+// DELETE
+// ============================
+function openDeleteConfirm(id) {
+  deleteTarget = id;
+  const b = getBookings().find(x => x.id === id);
+  const d = new Date(b.date + 'T00:00:00');
+  document.getElementById('delete-confirm-text').textContent =
+    `${b.name}さん（${fmtDisplay(d)} ${b.time}〜）の予約をキャンセルしますか？`;
+  closeModal();
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('open');
+  deleteTarget = null;
+}
+
+function confirmDelete() {
+  if (!deleteTarget) return;
+  const bookings = getBookings().filter(b => b.id !== deleteTarget);
+  saveBookings(bookings);
+  closeDeleteModal();
+  renderCalendar();
+  renderBookingsList();
+  renderStats();
+  showToast('予約をキャンセルしました', 'error');
+}
+
+// ============================
+// BOOKINGS LIST
+// ============================
+function renderBookingsList() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  let bookings = getBookings();
+  if (q) bookings = bookings.filter(b => b.name.toLowerCase().includes(q));
+  bookings.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  const el = document.getElementById('bookings-list');
+  if (bookings.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><p>予約がありません</p></div>`;
+    return;
+  }
+  el.innerHTML = bookings.map(b => {
+    const d = new Date(b.date + 'T00:00:00');
+    return `
+      <div class="booking-card">
+        <div>
+          <div style="font-size:1.5rem">${b.grade === '小1' ? '🟢' : b.grade === '小2' ? '🔵' : '🟣'}</div>
+        </div>
+        <div class="bc-info">
+          <div class="bc-name">${b.name}</div>
+          <div class="bc-meta">${b.grade} ${b.phone ? '📞 ' + b.phone : ''} ${b.note ? '📝 ' + b.note : ''}</div>
+          <div class="bc-date">📅 ${fmtDisplay(d)} ${b.time}〜</div>
+        </div>
+        <span class="booking-badge">${b.grade}</span>
+        <button class="btn btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.82rem" onclick="openDeleteConfirm('${b.id}')">🗑</button>
+      </div>`;
+  }).join('');
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  renderBookingsList();
+}
+
+function renderStats() {
+  const bookings = getBookings();
+  const today = fmtDate(new Date(2026, 4, 16));
+  const thisWeek = getWeekDays(weekOffset).map(fmtDate);
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${bookings.length}</div><div class="stat-label">総予約数</div></div>
+    <div class="stat-card"><div class="stat-num">${bookings.filter(b=>b.date===today).length}</div><div class="stat-label">本日の予約</div></div>
+    <div class="stat-card"><div class="stat-num">${bookings.filter(b=>thisWeek.includes(b.date)).length}</div><div class="stat-label">今週の予約</div></div>
+    <div class="stat-card"><div class="stat-num">${[...new Set(bookings.map(b=>b.name))].length}</div><div class="stat-label">生徒数</div></div>`;
+}
+
+// ============================
+// TABS
+// ============================
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    const names = ['calendar', 'bookings', 'info'];
+    b.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'bookings') { renderBookingsList(); renderStats(); }
+}
+
+// ============================
+// TOAST
+// ============================
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ============================
+// INIT
+// ============================
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+document.getElementById('delete-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('delete-modal')) closeDeleteModal();
+});
+
+renderCalendar();
+renderStats();
+</script>
+</body>
+</html>
