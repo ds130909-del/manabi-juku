@@ -1196,10 +1196,7 @@ function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterva
 // ============================
 function renderQuestion(){
   const{display,hint,storyText}=session.problem;
-  // Story sentence
-  const ss=document.getElementById('story-sentence');
-  if(storyText){ss.textContent=storyText;ss.style.display='block';}
-  else{ss.style.display='none';}
+  document.getElementById('story-sentence').style.display='none';
   document.getElementById('q-hint').textContent=hint||'';
   document.getElementById('q-text').innerHTML=display.map(t=>{
     if(t==='?') return '';
