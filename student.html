@@ -345,6 +345,44 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
 }
 .report-footer{margin-top:1rem;font-size:0.78rem;color:#999;text-align:center;border-top:1px solid #eee;padding-top:0.5rem;}
 
+/* ===== STORY INTRO ===== */
+#screen-story{
+  align-items:center;justify-content:center;padding:2rem;
+}
+.story-card{
+  background:white;border-radius:24px;padding:2rem 1.5rem;
+  width:100%;max-width:400px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.story-setting{font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem;font-weight:700;letter-spacing:1px;}
+.story-char{font-size:5rem;margin:0.3rem 0;animation:bounce 2s infinite;}
+.story-char-name{font-size:1rem;font-weight:900;color:var(--purple);margin-bottom:1rem;}
+.story-text{
+  font-size:1rem;line-height:1.9;color:var(--text);
+  background:var(--bg);border-radius:12px;padding:1rem;margin-bottom:1.2rem;
+  text-align:left;
+}
+.story-start-btn{
+  width:100%;padding:0.9rem;
+  background:linear-gradient(135deg,#f6d365,#fda085);
+  color:white;border:none;border-radius:12px;font-size:1.1rem;
+  font-weight:900;font-family:inherit;cursor:pointer;
+}
+/* Story text above math expression */
+.story-sentence{
+  font-size:0.95rem;line-height:1.8;color:var(--text);
+  margin-bottom:0.7rem;text-align:left;
+  border-left:3px solid var(--accent);padding-left:0.7rem;
+}
+/* Story outro in clear screen */
+.story-outro{
+  background:linear-gradient(135deg,#fff9f0,#fff3e0);
+  border-radius:12px;padding:0.9rem 1rem;margin:0.5rem 0 1rem;
+  font-size:0.92rem;line-height:1.8;color:var(--text);text-align:left;
+  border:1px solid #ffd089;
+}
+
 /* DIFF POPUP */
 .diff-popup{
   position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);
@@ -473,6 +511,7 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
     </div>
     <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
     <div class="question-box" id="question-box">
+      <div class="story-sentence" id="story-sentence" style="display:none"></div>
       <div class="question-hint" id="q-hint"></div>
       <div class="question-text" id="q-text"></div>
       <div style="margin-top:0.8rem">
@@ -496,6 +535,17 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:
         <button class="num-btn ok-btn" id="ok-btn" onclick="submitAnswer()">✓</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== STORY INTRO ===== -->
+<div class="screen" id="screen-story">
+  <div class="story-card">
+    <div class="story-setting" id="story-setting">🌳 りんごのもり</div>
+    <div class="story-char" id="story-char">🦊</div>
+    <div class="story-char-name" id="story-char-name">キツネのコン</div>
+    <div class="story-text" id="story-text">ここにストーリーが入ります。</div>
+    <button class="story-start-btn" onclick="beginStage()">⚔️ さあ、はじめよう！</button>
   </div>
 </div>
 
@@ -605,6 +655,103 @@ const SPEED_CFG = {
   mul:{fast:4000,slow:12000}, mul2:{fast:9000,slow:22000},
   div:{fast:6000,slow:16000}, divr:{fast:9000,slow:22000},
 };
+// ============================
+// STORY DATA
+// ============================
+const STAGE_STORY = {
+  1:  {char:'🦊',charName:'キツネのコン',setting:'🌳 りんごのもり',
+       intro:'マナくんは ふしぎな もりに まよいこんだ。\nキツネのコンくんが かけよってきた。\n「ぼくが でいりぐちまで あんないしてあげる！\nでも まず、てつだって ほしいことが あるんだ。」',
+       outro:'「ありがとう！ マナくん、すごいね！」\nコンくんは うれしそうに わらった。\nもりのでいりぐちが みえてきた。ぼうけんは つづく…',
+       tpl:{add:['コンくんは りんごを {a}こ ひろいました。\nマナくんも {b}こ ひろいました。\nあわせて なんこ に なりますか？',
+                 'もりに どんぐりが {a}こ あります。\nかぜで {b}こ おちてきました。\nぜんぶで なんこ？'],
+            sub:['コンくんは りんごを {a}こ もっています。\n{b}こ おともだちに あげました。\nのこりは なんこ？']}},
+  2:  {char:'🐰',charName:'ウサギのピョン',setting:'🍄 キノコのおか',
+       intro:'おかをこえると、ウサギのピョンちゃんが なみだをながしていた。\n「あめで キノコが ながれちゃったの…。\nいくつ のこっているか わからなくて。」\nマナくんは いっしょに かぞえることにした。',
+       outro:'「マナくん、ありがとう！」\nピョンちゃんは ぴょんぴょん とびはねた。\n「つぎのまちへの みちを おしえてあげる！」',
+       tpl:{sub:['キノコが {a}ほん ありました。\nあめで {b}ほん ながれてしまいました。\nのこりは なんぼん？',
+                 'ピョンちゃんは にんじんを {a}ほん もっています。\n{b}ほん たべました。のこりは？'],
+            add:['ピョンちゃんは にんじんを {a}ほん とってきました。\nもう {b}ほん みつけました。ぜんぶで？']}},
+  3:  {char:'🦉',charName:'フクロウのフク先生',setting:'⭐ ほしぞらのそうげん',
+       intro:'そうげんには フクロウのフク先生が すんでいた。\n「おや、まよいこんだのかね。\nわしの もんだいが とければ みちを おしえよう。\n20までの けいさんじゃ。やってみなさい。」',
+       outro:'「なかなか やるな！」フク先生は うなずいた。\n「そのちょうしで がんばりなさい。\nつぎの まちは すぐそこじゃ。」',
+       tpl:{add:['フク先生の ほしの コレクション。\nきんのほしが {a}こ、ぎんのほしが {b}こ。\nあわせて なんこ？',
+                 'そうげんに はなが {a}ほん さいています。\nあした {b}ほん さきます。ぜんぶで？'],
+            sub:['フク先生は ほしを {a}こ もっています。\n{b}こ だれかに あげました。のこりは？']}},
+  4:  {char:'🦦',charName:'カワウソのウータ',setting:'🌊 かわのほとり',
+       intro:'かわには カワウソのウータくんが いた。\n「かわに さかながいっぱいいるんだけど、\nぼく かずが よわくて…。てつだって！」\nウータくんの めが きらきら ひかった。',
+       outro:'「やった！ これで どれだけいるか わかった！」\nウータくんは かわに とびこんだ。\n「むこうぎしに わたれる いかだを かしてあげる！」',
+       tpl:{sub:['かわに さかなが {a}ひき いました。\nウータくんが {b}ひき つかまえました。\nのこりは なんびき？',
+                 'いけに カメが {a}ひき います。\n{b}ひき りくに あがりました。のこりは？'],
+            add:['ウータくんは かにを {a}ぴき つかまえました。\nもう {b}ぴき つかまえました。ぜんぶで？']}},
+  5:  {char:'🐱',charName:'ネコのタマ',setting:'🏙 おおきなまち',
+       intro:'まちに つくと ネコのタマちゃんが まっていた。\n「ここは けいさんのまち！\nおかいものには ひき算と たし算が ひつようなの。\nいっしょに おてつだい してくれる？」',
+       outro:'「ありがとう！ おかげで おつかい できたよ！」\nタマちゃんは こころよく わらった。\n「やまへの ちずを プレゼントするね！」',
+       tpl:{add:['タマちゃんは コインを {a}まい もっています。\nおつりで {b}まい もらいました。\nぜんぶで なんまい？',
+                 'みせに りんごが {a}こ あります。\nあたらしく {b}こ いれました。あわせて？'],
+            sub:['タマちゃんは コインを {a}まい もっていました。\n{b}まい つかいました。のこりは？']}},
+  6:  {char:'🐿',charName:'リスのクリ',setting:'🍎 くだものいちば',
+       intro:'いちばには リスのクリちゃんが いた。\n「くだものが おおくて かぞえるのが たいへん！\nわたしの おみせの てつだいを してくれたら\nやまみちを おしえてあげる。」',
+       outro:'「マナくん、けいさんが はやい！」\nクリちゃんは びっくりした。\n「このどんぐり、おみやげにどうぞ。ぶじにかえれるといいね！」',
+       tpl:{sub:['いちばに りんごが {a}こ ありました。\n{b}こ うれました。のこりは なんこ？',
+                 'クリちゃんの みせに バナナが {a}ほん あります。\n{b}ほん うれました。のこりは？'],
+            add:['あさ {a}こ、ひるに {b}こ くだものが はいりました。\nぜんぶで なんこ？']}},
+  7:  {char:'🐻',charName:'クマのゴン',setting:'⛰ やまのいただき',
+       intro:'やまのてっぺんに クマのゴンが すんでいた。\n「ここまで きたのか！ すごいぞ。\nわしの たからものを かぞえる てつだいを してくれ。\nおおきな かずが でてくるぞ。いいか？」',
+       outro:'「みごとじゃ！」ゴンは やまびこのような こえで わらった。\n「にしのたに への ちかみちを おしえよう。\nつぎの しれんへ むかうがよい！」',
+       tpl:{add:['ゴンの どうくつには こうかが {a}まい あります。\nきょう {b}まい ふえました。ぜんぶで？',
+                 'たからばこに ほうせきが {a}こ はいっています。\n{b}こ みつけました。あわせて？'],
+            sub:['ゴンは きのみを {a}こ あつめました。\n{b}こ たべました。のこりは？']}},
+  8:  {char:'🐯',charName:'トラのまほうつかい',setting:'🏫 まほうのがっこう',
+       intro:'にしのたにには まほうのがっこうが あった。\nトラのまほうつかいが むかえてくれた。\n「かけ算の まほうを おぼえれば、おおきな かずが\nあっというまに わかるようになる。ためしてみな！」',
+       outro:'「よし！かけ算の まほうが つかえるように なったぞ！」\nトラは マナくんに まほうのつえを わたした。\n「つぎの どうくつを くぐれ。りゅうが まっているぞ。」',
+       tpl:{mul:['{a}のだんの れんしゅうだ！\n{a}こ はいった ふくろが {b}ふくろ あります。\nぜんぶで なんこ？',
+                '{b}にんの こどもに {a}こずつ アメを あげます。\nぜんぶで なんこ いりますか？']}},
+  9:  {char:'🐉',charName:'りゅうのリュウ',setting:'🌋 りゅうのどうくつ',
+       intro:'どうくつの おくに りゅうのリュウが いた。\n「なぞなぞに こたえれば とおしてやる。\nむずかしい かけ算じゃ。おそれるな！」\nマナくんは こぶしを にぎった。',
+       outro:'「ふむ…とおりなさい。」リュウは みちをあけた。\n「おまえには つよい こころが ある。\nこのほのおのはね、もっていきなさい。」',
+       tpl:{mul:['リュウの どうくつに たからが {a}れつ {b}こずつ ならんでいる。\nぜんぶで なんこ？',
+                '{a}のだん！{b}びきの りゅうが それぞれ {a}まい うろこを もっている。\nぜんぶで なんまい？']}},
+  10: {char:'👑',charName:'おうさまのペンギン',setting:'🏰 けいさんじょう',
+       intro:'じょうには ペンギンのおうさまが すんでいた。\n「ぜんての かけ算を マスターしたものだけが\nこのじょうを とおれる。\nすべての だんを みせてみよ！」',
+       outro:'「みごと！ そなたは かけ算の えいゆうじゃ！」\nおうさまは おうかんを さしだした。\n「にしのうみへの ふねを つかわせてやろう。」',
+       tpl:{mul:['おうさまの ぐんたいに へいが {a}れつ {b}にんずつ ならんでいる。\nぜんぶで なんにん？',
+                '{a}まいいりの ふくろが {b}ふくろ。ぜんぶで なんまい？']}},
+  11: {char:'🐑',charName:'ヒツジのわけわけ',setting:'🏘 わけっこのむら',
+       intro:'むらでは ヒツジたちが こまっていた。\n「みんなで こうえんに いくのに、\nどうやって こうへいに わけるか わからないの。\nわり算をおしえてください！」',
+       outro:'「これで けんかしなくてすむ！ ありがとう！」\nヒツジたちは よろこんで おどりだした。\n「うみへの みちを ようびょうを だして おしえるね！」',
+       tpl:{div:['リンゴが {a}こ あります。\n{b}にんで こうへいに わけると\nひとり なんこ？',
+                '{a}まいの シールを {b}にんで わけます。\nひとり なんまい？']}},
+  12: {char:'🐭',charName:'ネズミのチクタク',setting:'🕰 とけいのとう',
+       intro:'とけいのとうに ネズミのチクタクが いた。\n「とけいを なおすのに おおきな かずの ひき算が ひつよう。\nてつだって くれると うれしいんだけど…。」\nとけいは ぼろぼろだった。',
+       outro:'「とけいが なおった！ チクチクチク…」\nチクタクは うれしそうに とけいを なでた。\n「にしのうみへの ちかみちを おしえてあげる！」',
+       tpl:{sub:['とけいのぶひんが {a}こ あります。\n{b}こ つかいました。のこりは？',
+                'チクタクは ねじを {a}ほん もっていました。\n{b}ほん なくしました。のこりは？']}},
+  13: {char:'🐺',charName:'かいぞくのオオカミ',setting:'🏴‍☠️ たからじま',
+       intro:'うみをわたると たからじまに かいぞくのオオカミが いた。\n「たからを みつけたが…こうへいに わけかたが わからん！\nこたえたら たからを すこし わけてやろう。」',
+       outro:'「おまえは なかなか やるな！」\nオオカミは にやりと わらった。\n「このたからのちず、もっていけ。ほんとうのゴールはそこじゃ。」',
+       tpl:{div:['たからが {a}こ あります。\n{b}にんの かいぞくで わけると\nひとり なんこ？',
+                '{a}まいの きんかを {b}にんで わけます。\nひとり なんまい？']}},
+  14: {char:'🦣',charName:'きょじんのゾウ',setting:'🌍 きょじんのくに',
+       intro:'きょじんのくには なにもかもが おおきかった。\nゾウのきょじんが みおろしている。\n「ちいさいものよ、わしの もんだいに こたえよ。\nおおきな かけ算じゃ。にげるなよ！」',
+       outro:'「すごい…ちいさいのに つよい！」\nゾウは かがみこんで マナくんを みた。\n「もといたせかいへの とびらを おしえよう。」',
+       tpl:{mul2:['きょじんの たなに はこが {a}れつ {b}だんずつ ならんでいる。\nぜんぶで なんこ？',
+                 'きょだいな きが {b}ぽん あり、それぞれ {a}まい はっぱが ある。\nぜんぶで なんまい？']}},
+  15: {char:'🌈',charName:'にじのまほうじん',setting:'🏠 さいごのとびら',
+       intro:'とうとう さいごの ステージだ！\nとびらのまえに にじのまほうじんが あらわれた。\n「さいごのしれん。あまりのある わり算を といてみせよ。\nとけたら…もとのせかいへかえれるぞ！」',
+       outro:'「やった！！！」\nとびらが ひかりはじめ、マナくんは もとのせかいに もどった。\n「けいさんのちからで ぼうけんを のりこえたね。\nマナくんは けいさんの えいゆう だ！ 🎉」',
+       tpl:{divr:['たからが {a}こ あります。\n{b}にんで わけると、ひとり なんこで\nなんこ あまりますか？',
+                 '{a}まいの カードを {b}にんに くばります。\nひとり なんまい で、なんまい あまる？']}}
+};
+
+function getStoryTemplate(stageId, type, a, b){
+  const s = STAGE_STORY[stageId];
+  if(!s) return null;
+  const tpls = s.tpl[type] || Object.values(s.tpl)[0];
+  if(!tpls || !tpls.length) return null;
+  const tpl = tpls[Math.floor(Math.random()*tpls.length)];
+  return tpl.replace(/\{a\}/g, a).replace(/\{b\}/g, b);
+}
+
 const DIFF_LABELS = [
   {cls:'easy',  text:'🐢 やさしい'},
   {cls:'normal',text:'⭐ ふつう'},
@@ -959,7 +1106,8 @@ function generateProblem(stage,tier){
       const rem=randInt(1,dr-1);a=dr*q+rem;b=dr;
       answer=`${q}あまり${rem}`; display=[a,'÷',b,'=','?']; hint='こたえ: ○あまり○'; break;}
   }
-  return{a,b,answer,display,hint};
+  const storyText = getStoryTemplate(session?.stageId, stage.type, a, b);
+  return{a,b,answer,display,hint,storyText};
 }
 
 // ============================
@@ -977,6 +1125,35 @@ function startStage(id){
   sessMgr.lastStageWorked = stage.name;
   document.getElementById('prob-stage-title').textContent=`Stage ${id}「${stage.name}」`;
   document.getElementById('prob-stage-desc').textContent=stage.desc;
+  // Show story intro if available
+  const story=STAGE_STORY[id];
+  if(story){
+    document.getElementById('story-setting').textContent=story.setting;
+    document.getElementById('story-char').textContent=story.char;
+    document.getElementById('story-char-name').textContent=story.charName;
+    document.getElementById('story-text').textContent=story.intro;
+    document.getElementById('screen-story').style.background=
+      `linear-gradient(135deg, ${storyBg(id)} 0%, ${storyBg2(id)} 100%)`;
+    showScreen('story');
+  } else {
+    beginStage();
+  }
+}
+
+function storyBg(id){
+  const colors=['#e8f5e9','#fff3e0','#e3f2fd','#f3e5f5','#e8eaf6',
+                '#fce4ec','#e0f7fa','#fff8e1','#fbe9e7','#e8f5e9',
+                '#e3f2fd','#f3e5f5','#fce4ec','#e8eaf6','#fffde7'];
+  return colors[(id-1)%colors.length];
+}
+function storyBg2(id){
+  const colors=['#c8e6c9','#ffe0b2','#bbdefb','#e1bee7','#c5cae9',
+                '#f8bbd0','#b2ebf2','#fff9c4','#ffccbc','#c8e6c9',
+                '#bbdefb','#e1bee7','#f8bbd0','#c5cae9','#fff9c4'];
+  return colors[(id-1)%colors.length];
+}
+
+function beginStage(){
   showScreen('problem');
   updateDiffBadge();
   nextProblem();
@@ -1018,7 +1195,11 @@ function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterva
 // RENDER QUESTION
 // ============================
 function renderQuestion(){
-  const{display,hint}=session.problem;
+  const{display,hint,storyText}=session.problem;
+  // Story sentence
+  const ss=document.getElementById('story-sentence');
+  if(storyText){ss.textContent=storyText;ss.style.display='block';}
+  else{ss.style.display='none';}
   document.getElementById('q-hint').textContent=hint||'';
   document.getElementById('q-text').innerHTML=display.map(t=>{
     if(t==='?') return '';
@@ -1185,7 +1366,14 @@ function showClear(){
   document.getElementById('cs-streak').textContent=session.bestStreak;
   document.getElementById('cs-stars').textContent='+'+earnedStars;
   document.getElementById('clear-stars').textContent='⭐'.repeat(earnedStars)+'☆'.repeat(3-earnedStars);
+  const storyData=STAGE_STORY[id];
   document.getElementById('clear-msg').textContent=`「${stage.name}」をクリア！おめでとう！`;
+  // Story outro
+  let outroEl=document.getElementById('story-outro-box');
+  if(!outroEl){outroEl=document.createElement('div');outroEl.id='story-outro-box';outroEl.className='story-outro';
+    document.getElementById('clear-stars').insertAdjacentElement('afterend',outroEl);}
+  if(storyData){outroEl.textContent=storyData.outro;outroEl.style.display='block';}
+  else{outroEl.style.display='none';}
   document.getElementById('header-stars').textContent=state.stars;
   const next=STAGES.find(s=>s.id===id+1);
   const btn=document.getElementById('next-stage-btn');
