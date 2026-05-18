@@ -1244,7 +1244,8 @@ function proceedToMap(){
 // MAP
 // ============================
 function renderMap(){
-  document.getElementById('header-stars').textContent=state.stars;
+  const starsEl=document.getElementById('header-stars');
+  if(starsEl) starsEl.textContent=state.stars;
   renderOverallProgress();
   const grades=[...new Set(STAGES.map(s=>s.grade))];
   document.getElementById('grade-sections').innerHTML=grades.map(grade=>{
@@ -1653,7 +1654,8 @@ function showClear(){
     outroEl.style.display='block';
     outroEl.style.borderColor = perfLevel===2?'#ffd700':perfLevel===1?'#ffd089':'#b0bec5';
   } else {outroEl.style.display='none';}
-  document.getElementById('header-stars').textContent=state.stars;
+  const starsEl2=document.getElementById('header-stars');
+  if(starsEl2) starsEl2.textContent=state.stars;
   const next=STAGES.find(s=>s.id===id+1);
   const btn=document.getElementById('next-stage-btn');
   if(next){btn.style.display='block';btn.textContent=`つぎのステージ「${next.name}」へ →`;}
