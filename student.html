@@ -1135,7 +1135,7 @@ const SESSION_MINUTES = 30;
 // ============================
 // STATE
 // ============================
-let state = {playerName:'',stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0};
+let state = {playerName:'',stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0,storyShown:[]};
 let session = {};   // current stage session
 let sessMgr = {};   // 30-min session manager
 let timerInterval = null;
@@ -1150,8 +1150,9 @@ function loadState(name){
   if(raw){state=JSON.parse(raw);state.playerName=name;
     if(!state.exp) state.exp=0;
     if(!state.g1chapter) state.g1chapter=0;
+    if(!state.storyShown) state.storyShown=[];
   }
-  else{state={playerName:name,stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0};}
+  else{state={playerName:name,stars:0,cleared:[],stageProgress:{},sessionCount:0,exp:0,g1chapter:0,storyShown:[]};}
 }
 function isCleared(id){return state.cleared.includes(id);}
 function isAvailable(id){return id===1||isCleared(id-1);}
@@ -1578,9 +1579,12 @@ function startStage(id){
   sessMgr.lastStageWorked = stage.name;
   document.getElementById('prob-stage-title').textContent=`Stage ${id}「${stage.name}」`;
   document.getElementById('prob-stage-desc').textContent=stage.desc;
-  // Show story intro if available
+  // Show story intro only on first visit
   const story=STAGE_STORY[id];
-  if(story){
+  const alreadySeen=(state.storyShown||[]).includes(id);
+  if(story && !alreadySeen){
+    state.storyShown=[...(state.storyShown||[]),id];
+    saveState();
     document.getElementById('story-setting').textContent=story.setting;
     document.getElementById('story-char').textContent=story.char;
     document.getElementById('story-char-name').textContent=story.charName;
